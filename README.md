@@ -5,7 +5,7 @@ This is a scalatra template with a connection to H2 db with Slick and serving up
 ## Build & Run ##
 
 ```sh
-$ cd scalatra-template
+$ cd spool
 $ ./sbt
 > jetty:start
 > browse
