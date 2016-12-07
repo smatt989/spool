@@ -15,6 +15,12 @@ trait AppRoutes extends SlickRoutes{
     </html>
   }
 
+  get("/adventures/available") {
+    contentType = formats("json")
+
+    Adventure.getAll
+  }
+
   post("/adventures/save") {
     contentType = formats("json")
 
