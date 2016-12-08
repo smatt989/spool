@@ -3,8 +3,7 @@ import org.scalatra._
 import javax.servlet.ServletContext
 import com.mchange.v2.c3p0.ComboPooledDataSource
 import org.slf4j.LoggerFactory
-// import slick.driver.H2Driver.api._
-import slick.driver.PostgresDriver.api._
+import slick.driver.H2Driver.api._
 
 class ScalatraBootstrap extends LifeCycle {
   val logger = LoggerFactory.getLogger(getClass)
@@ -13,12 +12,18 @@ class ScalatraBootstrap extends LifeCycle {
   logger.info("Created c3p0 connection pool")
 
   override def init(context: ServletContext): Unit = {
-    val db = if(isProduction(context)){
+    if(isProduction(context)){
+      val DRIVER = "org.postgresql.Driver"
       val DB_CONNECTION = System.getenv("JDBC_DATABASE_URL")
-      Database.forURL(DB_CONNECTION)
-    } else {
-      Database.forDataSource(cpds)
+      val DB_USER = System.getenv("JDBC_DATABASE_USERNAME")
+      val DB_PASSWORD = System.getenv("JDBC_DATABASE_PASSWORD")
+      cpds.setDriverClass(DRIVER)
+      cpds.setJdbcUrl(DB_CONNECTION)
+      cpds.setUser(DB_USER)
+      cpds.setPassword(DB_PASSWORD)
     }
+
+    val db = Database.forDataSource(cpds)
 
     AppGlobals.db = () => db
 
@@ -27,7 +32,7 @@ class ScalatraBootstrap extends LifeCycle {
   }
 
   private[this] def isProduction(context: ServletContext) = {
-    val envKey = context.getInitParameter(org.scalatra.EnvironmentKey)
+    val envKey = context.environment
     envKey != null && envKey == JettyLauncher.PRODUCTION
   }
 

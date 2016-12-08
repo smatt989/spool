@@ -1,8 +1,7 @@
 package com.example.app.models
 
 import com.example.app.{HasIntId, SlickDbObject, Tables}
-//import slick.driver.H2Driver.api._
-import slick.driver.PostgresDriver.api._
+import slick.driver.H2Driver.api._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 case class Waypoint(id: Int = 0, adventureId: Int, name: Option[String] = None, latitude: Double, longitude: Double, order: Int) extends HasIntId[Waypoint]{

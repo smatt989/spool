@@ -37,7 +37,7 @@ object TestappBuild extends Build {
         //"javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
         "com.typesafe.slick" %% "slick" % "3.1.1",
         "org.slf4j" % "slf4j-nop" % "1.6.4",
-        //"com.h2database" % "h2" % "1.4.181",
+        "com.h2database" % "h2" % "1.4.181",
         "postgresql" % "postgresql" % "9.1-901.jdbc4",
         "com.mchange" % "c3p0" % "0.9.5.1"
 
