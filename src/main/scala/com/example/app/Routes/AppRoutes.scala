@@ -15,12 +15,6 @@ trait AppRoutes extends SlickRoutes{
     </html>
   }
 
-  get("/adventures/available") {
-    contentType = formats("json")
-
-    Adventure.getAll
-  }
-
   post("/adventures/save") {
     contentType = formats("json")
 
@@ -35,6 +29,12 @@ trait AppRoutes extends SlickRoutes{
     val adventureId = {params("id")}.toInt
 
     Adventure.byId(adventureId)
+  }
+
+  get("/adventures/available") {
+    contentType = formats("json")
+
+    Adventure.getAll
   }
 
   post("/adventures/:id/waypoints/save") {
