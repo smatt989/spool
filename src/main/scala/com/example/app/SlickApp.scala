@@ -8,9 +8,11 @@ import slick.driver.H2Driver.api._
   * Created by matt on 11/22/16.
   */
 
-class SlickApp(val db: Database) extends ScalatraServlet with FutureSupport
+class SlickApp() extends ScalatraServlet with FutureSupport
   with AppRoutes
   with DBManagementRoutes{
+
+  def db = AppGlobals.db()
 
   protected implicit def executor = scala.concurrent.ExecutionContext.Implicits.global
 
