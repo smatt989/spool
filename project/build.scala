@@ -16,7 +16,7 @@ object TestappBuild extends Build {
   lazy val project = Project (
     "Spool",
     file("."),
-    settings = ScalatraPlugin.scalatraSettings ++ scalateSettings ++ Seq(
+    settings = seq(com.typesafe.sbt.SbtStartScript.startScriptForClassesSettings: _*) ++ ScalatraPlugin.scalatraSettings ++ Defaults.defaultSettings ++ ScalatraPlugin.scalatraWithJRebel ++ scalateSettings ++ Seq(
       organization := Organization,
       name := Name,
       version := Version,
@@ -31,8 +31,10 @@ object TestappBuild extends Build {
         "org.scalatra" %% "scalatra-json" % ScalatraVersion,
         "org.json4s"   %% "json4s-jackson" % "3.3.0",
         "ch.qos.logback" % "logback-classic" % "1.1.5" % "runtime",
-        "org.eclipse.jetty" % "jetty-webapp" % "9.2.15.v20160210" % "container",
-        "javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
+        "org.eclipse.jetty" % "jetty-webapp" % "8.1.10.v20130312" % "compile;container",
+        "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "compile;container;provided;test" artifacts (Artifact("javax.servlet", "jar", "jar")),
+        //"org.eclipse.jetty" % "jetty-webapp" % "9.2.15.v20160210" % "container",
+        //"javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
         "com.typesafe.slick" %% "slick" % "3.1.1",
         "org.slf4j" % "slf4j-nop" % "1.6.4",
         "com.h2database" % "h2" % "1.4.181",
