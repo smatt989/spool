@@ -3,7 +3,8 @@ import org.scalatra._
 import javax.servlet.ServletContext
 import com.mchange.v2.c3p0.ComboPooledDataSource
 import org.slf4j.LoggerFactory
-import slick.driver.H2Driver.api._
+// import slick.driver.H2Driver.api._
+import slick.driver.PostgresDriver.api._
 
 class ScalatraBootstrap extends LifeCycle {
   val logger = LoggerFactory.getLogger(getClass)

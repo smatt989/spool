@@ -3,7 +3,8 @@ package com.example.app.models
 import com.example.app.{AppGlobals, HasIntId, Tables, Updatable}
 
 import scala.io.Source
-import slick.driver.H2Driver.api._
+//import slick.driver.H2Driver.api._
+import slick.driver.PostgresDriver.api._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.parsing.json.JSON
