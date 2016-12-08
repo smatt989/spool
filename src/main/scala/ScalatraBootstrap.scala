@@ -10,18 +10,13 @@ class ScalatraBootstrap extends LifeCycle {
   val logger = LoggerFactory.getLogger(getClass)
 
   val cpds = new ComboPooledDataSource
-
-  val cpos = new ComboPooledDataSource()
   logger.info("Created c3p0 connection pool")
 
   override def init(context: ServletContext): Unit = {
     val db = if(isProduction(context)){
-      logger.info("YOU ARE IN PRODUCTION")
       val DB_CONNECTION = System.getenv("JDBC_DATABASE_URL")
-      logger.info("CONNECTING TO: "+DB_CONNECTION)
       Database.forURL(DB_CONNECTION)
     } else {
-      logger.info("YOU ARE IN DEV")
       Database.forDataSource(cpds)
     }
 
