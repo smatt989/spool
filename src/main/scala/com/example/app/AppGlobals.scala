@@ -6,5 +6,5 @@ object AppGlobals {
 
   var db: () => Database = null
 
-  val googleMapsKey = "AIzaSyBrQyRpA3v1gZCznfUvcjSZFG5r_KnrnVs"
+  val googleMapsKey = System.getenv("GOOGLE_API_KEY")
 }
