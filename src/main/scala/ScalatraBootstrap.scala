@@ -23,8 +23,11 @@ class ScalatraBootstrap extends LifeCycle {
       cpds.setPassword(DB_PASSWORD)
     }
 
+    System.out.print("TRYING TO CONNECTION TO DB NOW...")
+    System.out.print("CONNECTION: "+cpds.getJdbcUrl)
+    System.out.print("USER: "+cpds.getUser)
     val db = Database.forDataSource(cpds)
-
+    System.out.print("OK CONNECTED DB...")
     AppGlobals.db = () => db
 
     context.mount(new SlickApp(), "/*")
