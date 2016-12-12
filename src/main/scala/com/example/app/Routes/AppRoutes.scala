@@ -1,12 +1,12 @@
 package com.example.app.Routes
 
-import com.example.app.SlickRoutes
+import com.example.app.{MyAuthentication, SlickRoutes}
 import com.example.app.models.{Adventure, JsonWaypoint, Waypoint}
 
-trait AppRoutes extends SlickRoutes{
-
+trait AppRoutes extends SlickRoutes with MyAuthentication{
 
   get("/") {
+    authenticate()
     <html>
       <body>
         <div id="app"></div>
@@ -24,6 +24,7 @@ trait AppRoutes extends SlickRoutes{
   }
 
   get("/adventures/:id") {
+    authenticate()
     contentType = formats("json")
 
     val adventureId = {params("id")}.toInt
@@ -38,6 +39,7 @@ trait AppRoutes extends SlickRoutes{
   }
 
   post("/adventures/:id/waypoints/save") {
+    authenticate()
     contentType = formats("json")
 
     val adventureId = {params("id")}.toInt

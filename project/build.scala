@@ -39,8 +39,9 @@ object TestappBuild extends Build {
         "org.slf4j" % "slf4j-nop" % "1.6.4",
         "com.h2database" % "h2" % "1.4.181",
         "postgresql" % "postgresql" % "9.1-901.jdbc4",
-        "com.mchange" % "c3p0" % "0.9.5.1"
-
+        "com.mchange" % "c3p0" % "0.9.5.1",
+        "org.scalatra" %% "scalatra-auth" % ScalatraVersion,
+        "org.mindrot" % "jbcrypt" % "0.3m"
       ),
       scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
         Seq(
