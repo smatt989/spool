@@ -1,7 +1,8 @@
 package com.example.app
 
 import org.scalatra.{CorsSupport, FutureSupport, ScalatraBase}
-import slick.driver.H2Driver.api._
+//import slick.driver.H2Driver.api._
+import slick.driver.PostgresDriver.api._
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json._
 import org.scalatra.scalate.ScalateSupport

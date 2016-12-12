@@ -2,7 +2,8 @@ package com.example.app
 
 import com.example.app.models._
 
-import slick.driver.H2Driver.api._
+//import slick.driver.H2Driver.api._
+import slick.driver.PostgresDriver.api._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
