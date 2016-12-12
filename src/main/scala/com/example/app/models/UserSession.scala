@@ -3,7 +3,8 @@ package com.example.app.models
 import java.util.UUID
 
 import com.example.app.{HasIntId, SlickDbObject, Tables}
-import slick.driver.H2Driver.api._
+//import slick.driver.H2Driver.api._
+import slick.driver.PostgresDriver.api._
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
