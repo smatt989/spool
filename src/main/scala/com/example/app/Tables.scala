@@ -52,12 +52,15 @@ object Tables {
 
   val schemas = (adventures.schema ++ waypoints.schema ++ users.schema ++ userSessions.schema)
 
+  val oldSchemas = (adventures.schema ++ waypoints.schema)
 
   // DBIO Action which creates the schema
   val createSchemaAction = schemas.create
 
   // DBIO Action which drops the schema
   val dropSchemaAction = schemas.drop
+
+  val dropOldSchemaAction = oldSchemas.drop
 
 }
 

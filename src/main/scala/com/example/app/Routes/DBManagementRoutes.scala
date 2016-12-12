@@ -15,6 +15,10 @@ trait DBManagementRoutes extends SlickRoutes{
     db.run(Tables.dropSchemaAction)
   }
 
+  get("/db/drop-old-tables"){
+    db.run(Tables.dropOldSchemaAction)
+  }
+
   get("/db/load-data") {
     DataImport.populateData(db)
   }
