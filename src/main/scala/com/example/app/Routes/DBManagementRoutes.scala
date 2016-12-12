@@ -8,7 +8,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 trait DBManagementRoutes extends SlickRoutes{
 
   get("/db/create-tables") {
-    db.run(Tables.createSchemaAction)
+    System.out.println("TRYING TO HIT DB")
+    val k = db.run(Tables.createSchemaAction)
+    System.out.println("SUCCEEDED")
+    k
   }
 
   get("/db/drop-tables") {
