@@ -1,0 +1,23 @@
+#mapid {
+    height: 500px;
+    width: 100%;
+}
+
+.leaflet-container {
+    height: 70%;
+    width: 80%;
+}
+
+.map-search-results {
+  position:absolute; /* instead of : position:absolute;*/
+  top:7%;         /* instead of : top:100%;*/
+  z-index: 1000;
+}
+
+.small-details{
+    font-size: 70%;
+}
+
+.object-details{
+    display:inline-block;
+}

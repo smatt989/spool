@@ -26,12 +26,17 @@
     "axios": "^0.15.3",
     "immutable": "^3.8.1",
     "jquery": "^3.1.1",
+    "leaflet": "^1.0.2",
+    "lodash": "^4.17.2",
     "react": "^15.4.1",
     "react-addons-pure-render-mixin": "^15.4.1",
+    "react-bootstrap": "^0.30.7",
     "react-dom": "^15.4.1",
     "react-redux": "^4.4.6",
-    "react-router": "^2.5.2",
+    "react-router": "^2.8.1",
     "redux": "^3.6.0",
-    "redux-promise": "^0.5.3"
+    "redux-promise": "^0.5.3",
+    "underscore": "^1.8.3",
+    "uuid": "^3.0.1"
   }
 }
