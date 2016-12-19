@@ -1,5 +1,8 @@
 import {Map, List} from 'immutable';
-import {_} from 'underscore';
+import {triggerModel} from './triggerModel';
+import {itemSubTypeByItemTypeAndId} from './utilities';
+
+var _ = require('lodash');
 
 const uuidv1 = require('uuid/v1');
 
@@ -12,14 +15,14 @@ function setLatLng(state, lat, lng) {
 }
 
 function createMarker(state, latlng, title){
-    const marker = {latlng: latlng, key: uuidv1(), title: title};
-    const newState = state.set('markers', state.get('markers').concat(marker));
+    const marker = Map({latlng: latlng, key: uuidv1(), title: title});
+    const newState = state.set('markers', state.get('markers').push(marker));
     return newState.set('objectCount', newState.get('objectCount')+1)
 }
 
 function removeMarker(state, key){
     const markers = state.get('markers');
-    const without = markers.filter(function(o) { return o.key != key; });
+    const without = markers.filter(function(o) { return o.get('key') != key; });
     return state.set('markers', without);
 }
 
@@ -27,7 +30,7 @@ function updateMarker(state, marker){
     const markers = state.get('markers');
 
     const newMarkers = markers.map(function(o) {
-        if(o.key === marker.key){
+        if(o.get('key') === marker.get('key')){
             return marker
         } else {
             return o
@@ -46,7 +49,7 @@ function mapCentered(state){
 }
 
 function mapJumpTo(state, latlng, locationType){
-    return state.set('mapJumpTo', {latlng: latlng, locationType: locationType});
+    return state.set('mapJumpTo', Map({latlng: latlng, locationType: locationType}));
 }
 
 function mapJumped(state){
@@ -54,19 +57,19 @@ function mapJumped(state){
 }
 
 function searchRemoteLocations(state) {
-    return state.set('remoteLocationsList', {locations: [], error: null, loading: true});
+    return state.set('remoteLocationsList', Map({locations: List.of(), error: null, loading: true}));
 }
 
 function searchRemoteLocationsSuccess(state, locations) {
-    return state.set('remoteLocationsList', {locations: locations, error: null, loading: false});
+    return state.set('remoteLocationsList', Map({locations: locations, error: null, loading: false}));
 }
 
 function searchRemoteLocationsError(state, error) {
-    return state.set('remoteLocationsList', {locations: [], error: error, loading: false});
+    return state.set('remoteLocationsList', Map({locations: List.of(), error: error, loading: false}));
 }
 
 function clearRemoteLocationSearchResults(state){
-    return state.set('remoteLocationsList', {locations: [], error: null, loading: false});
+    return state.set('remoteLocationsList', Map({locations: List.of(), error: null, loading: false}));
 }
 
 function selectMarker(state, key){
@@ -87,14 +90,14 @@ function unstageMarkerForEdit(state){
 
 function createTrigger(state, title){
 
-    const trigger = {key: uuidv1(), title: title, event: null, actions: []};
-    const newState = state.set('triggers', state.get('triggers').concat(trigger));
+    const trigger = Map({key: uuidv1(), title: title, event: Map({key: uuidv1()}), actions: List.of(Map({key: uuidv1()}))});
+    const newState = state.set('triggers', state.get('triggers').push(trigger));
     return newState.set('triggerCount', newState.get('triggerCount')+1)
 }
 
 function removeTrigger(state, key){
     const triggers = state.get('triggers');
-    const without = triggers.filter(function(o) { return o.key != key; });
+    const without = triggers.filter(function(o) { return o.get('key') != key; });
     return state.set('triggers', without);
 }
 
@@ -102,7 +105,7 @@ function updateTrigger(state, trigger){
     const triggers = state.get('triggers');
 
     const newTriggers = triggers.map(function(o) {
-        if(o.key === trigger.key){
+        if(o.get('key') === trigger.get('key')){
             return trigger
         } else {
             return o
@@ -112,15 +115,120 @@ function updateTrigger(state, trigger){
     return state.set('triggers', newTriggers);
 }
 
-function stageTriggerForEdit(state, key){
-    return state.set('editingTrigger', key);
+function stageTriggerForEdit(state, trigger){
+    return state.set('editingTrigger', trigger);
 }
 
 function unstageTriggerForEdit(state){
     return state.set('editingTrigger', null);
 }
 
+function updateTitleOfStagedTrigger(editingTriggerState, title){
+    return editingTriggerState.set('title', title)
+}
 
+function addActionToStagedTrigger(editingTriggerState){
+    const newAction = Map({key: uuidv1()})
+
+    return editingTriggerState.set('actions', editingTriggerState.get('actions').push(newAction))
+}
+
+//UTILITY FUNCTIONS
+
+function setItemByItemType(editingTriggerState, itemType, newItem){
+    if(itemType === "action"){
+        const actions = editingTriggerState.get('actions')
+        const newActions = actions.map(function(o){
+            if(o.get('key') === newItem.get('key')){
+                return newItem
+            } else{
+                return o
+            }
+        })
+
+        return editingTriggerState.set('actions', newActions)
+    } else if(itemType === "event"){
+        return editingTriggerState.set('event', newItem)
+    } else {
+        console.log("VERY BAD")
+    }
+}
+
+function getEditingItem(editingTriggerState, itemType, itemKey){
+    if(itemType === "action"){
+        const actions = editingTriggerState.get('actions');
+        return _.find(actions.toArray(), function(o){return o.get('key') === itemKey});
+    }else if(itemType === "event"){
+        return editingTriggerState.get('event');
+    }else {
+        console.log("VERY BAD")
+    }
+}
+
+//END OF UTILITY FUNCTIONS
+
+function updateItemOfStagedTrigger(editingTriggerState, itemType, itemSubTypeId, key){
+    var newVarAssignments;
+    if(itemSubTypeId){
+        const itemSubType = itemSubTypeByItemTypeAndId(itemType, itemSubTypeId)
+        const variables = itemSubType.variables ? itemSubType.variables : [];
+        newVarAssignments = List(variables.map(v => List.of(null)))
+    } else {
+        newVarAssignments = List.of(List.of(null))
+    }
+
+    const newItem = Map({itemSubTypeId: itemSubTypeId, key: key, varAssignments: newVarAssignments})
+
+    return setItemByItemType(editingTriggerState, itemType, newItem)
+}
+
+function removeActionFromStagedTrigger(editingTriggerState, key){
+    const actions = editingTriggerState.get('actions');
+    const without = actions.filter(function(o) { return o.get('key') != key });
+    return editingTriggerState.set('actions', without);
+}
+
+function updateItemVariableAssignmentInStagedTrigger(editingTriggerState, itemType, itemKey, variableIndex, arrayIndex, assignment){
+    const editingItem = getEditingItem(editingTriggerState, itemType, itemKey)
+
+    const arrayAssignments = editingItem.getIn(['varAssignments', variableIndex]);
+    const newArrayAssignments = arrayAssignments.set(arrayIndex, assignment);
+
+    const variableAssignments = editingItem.get('varAssignments');
+    const newVariableAssignment = variableAssignments.set(variableIndex, newArrayAssignments);
+
+    const newEditingItem = editingItem.set('varAssignments', newVariableAssignment);
+
+    return setItemByItemType(editingTriggerState, itemType, newEditingItem)
+}
+
+function removeItemVariableAssignmentInStagedTrigger(editingTriggerState, itemType, itemKey, variableIndex, arrayIndex){
+    const editingItem = getEditingItem(editingTriggerState, itemType, itemKey);
+
+    const arrayAssignments = editingItem.getIn(['varAssignments', variableIndex]);
+    const newArrayAssignments = arrayAssignments.delete(arrayIndex);
+
+    const variableAssignments = editingItem.get('varAssignments');
+    const newVariableAssignment = variableAssignments.set(variableIndex, newArrayAssignments);
+
+    const newEditingItem = editingItem.set('varAssignments', newVariableAssignment);
+
+    return setItemByItemType(editingTriggerState, itemType, newEditingItem)
+}
+
+function addItemVariableAssignmentSlotInStagedTrigger(editingTriggerState, itemType, itemKey, variableIndex){
+    const editingItem = getEditingItem(editingTriggerState, itemType, itemKey);
+
+    const arrayAssignments = editingItem.getIn(['varAssignments', variableIndex]);
+    const newArrayAssignments = arrayAssignments.push(null);
+
+    const variableAssignments = editingItem.get('varAssignments');
+    const newVariableAssignment = variableAssignments.set(variableIndex, newArrayAssignments);
+
+    const newEditingItem = editingItem.set('varAssignments', newVariableAssignment);
+
+    return setItemByItemType(editingTriggerState, itemType, newEditingItem)
+}
 
 
 export default function(state = Map(), action) {
@@ -166,9 +274,30 @@ export default function(state = Map(), action) {
   case 'UPDATE_TRIGGER':
     return updateTrigger(state, action.trigger);
   case 'STAGE_TRIGGER_FOR_EDIT':
-    return stageTriggerForEdit(state, action.key);
+    return stageTriggerForEdit(state, action.trigger);
   case 'UNSTAGE_TRIGGER_FOR_EDIT':
     return unstageTriggerForEdit(state);
+  case 'UPDATE_TITLE_OF_STAGED_TRIGGER':
+    return state.update('editingTrigger',
+        editingTriggerState => updateTitleOfStagedTrigger(editingTriggerState, action.title));
+  case 'ADD_ACTION_TO_STAGED_TRIGGER':
+    return state.update('editingTrigger',
+       editingTriggerState => addActionToStagedTrigger(editingTriggerState));
+  case 'UPDATE_ITEM_OF_STAGED_TRIGGER':
+    return state.update('editingTrigger',
+        editingTriggerState => updateItemOfStagedTrigger(editingTriggerState, action.itemType, action.itemSubTypeId, action.key));
+  case 'REMOVE_ACTION_FROM_STAGED_TRIGGER':
+    return state.update('editingTrigger',
+        editingTriggerState => removeActionFromStagedTrigger(editingTriggerState, action.key));
+  case 'UPDATE_ITEM_VARIABLE_ASSIGNMENT_IN_STAGED_TRIGGER':
+    return state.update('editingTrigger',
+        editingTriggerState => updateItemVariableAssignmentInStagedTrigger(editingTriggerState, action.itemType, action.itemKey, action.variableIndex, action.arrayIndex, action.assignment));
+  case 'REMOVE_ITEM_VARIABLE_ASSIGNMENT_IN_STAGED_TRIGGER':
+    return state.update('editingTrigger',
+        editingTriggerState => removeItemVariableAssignmentInStagedTrigger(editingTriggerState, action.itemType, action.itemKey, action.variableIndex, action.arrayIndex));
+  case 'ADD_ITEM_VARIABLE_ASSIGNMENT_SLOT_IN_STAGED_TRIGGER':
+    return state.update('editingTrigger',
+        editingTriggerState => addItemVariableAssignmentSlotInStagedTrigger(editingTriggerState, action.itemType, action.itemKey, action.variableIndex));
   }
   return state;
 }

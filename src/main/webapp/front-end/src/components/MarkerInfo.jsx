@@ -33,23 +33,23 @@ const MarkerInfo = React.createClass({
         return <Modal show={show} onHide={close} />
     }
     else {
-        var marker = _.clone(this.editingMarkerByKey())
+        var marker = this.editingMarkerByKey()
         const save = function(m) {
             updateMarker(m);
             unstageMarkerForEdit();
         }
         const remove = function() {
-            removeMarker(marker.key);
+            removeMarker(marker.get('key'));
             unstageMarkerForEdit();
         }
 
         return <Modal show={show} onHide={unstageMarkerForEdit}>
                  <Modal.Header closeButton>
-                   <Modal.Title>{marker.title}</Modal.Title>
+                   <Modal.Title>{marker.get('title')}</Modal.Title>
                  </Modal.Header>
                  <Modal.Body>
                    <h4>Object Type: Location</h4>
-                   <h4>Title: </h4><FormControl onChange={function(a){marker.title = a.target.value}} type="text" placeholder="Title" defaultValue={marker.title} />
+                   <h4>Title: </h4><FormControl onChange={function(a){marker = marker.set('title', a.target.value)}} type="text" placeholder="Title" defaultValue={marker.get('title')} />
                  </Modal.Body>
                  <Modal.Footer>
                    <Button onClick={unstageMarkerForEdit}>Close</Button>

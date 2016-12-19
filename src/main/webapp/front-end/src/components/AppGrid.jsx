@@ -8,7 +8,7 @@ import {TriggerListContainer} from './TriggerList';
 import {NavBar} from './NavBar';
 import {MapToolbarContainer} from './MapToolbar';
 import {MarkerInfoContainer} from './MarkerInfo';
-import {TriggerEditorContainer} from './TriggerEditor';
+import {TriggerInfoContainer} from './TriggerInfo';
 
 export const AppGrid = React.createClass({
     mixins: [PureRenderMixin],
@@ -18,7 +18,7 @@ export const AppGrid = React.createClass({
                 <Col>
                     <NavBar />
                     <MarkerInfoContainer />
-                    <TriggerEditorContainer />
+                    <TriggerInfoContainer />
                 </Col>
             </Row>
             <Row className="show-grid">

@@ -149,15 +149,74 @@ export function updateTrigger(trigger){
     }
 }
 
-export function stageTriggerForEdit(key){
+export function stageTriggerForEdit(trigger){
     return {
         type: 'STAGE_TRIGGER_FOR_EDIT',
-        key: key
+        trigger: trigger
     }
 }
 
 export function unstageTriggerForEdit(){
     return {
         type: 'UNSTAGE_TRIGGER_FOR_EDIT'
+    }
+}
+
+export function addActionToStagedTrigger(){
+    return {
+        type: 'ADD_ACTION_TO_STAGED_TRIGGER'
+    }
+}
+
+export function updateTitleOfStagedTrigger(title){
+    return {
+        type: 'UPDATE_TITLE_OF_STAGED_TRIGGER',
+        title: title
+    }
+}
+
+export function updateItemOfStagedTrigger(itemType, itemSubTypeId, key){
+    return {
+        type: 'UPDATE_ITEM_OF_STAGED_TRIGGER',
+        itemType: itemType,
+        itemSubTypeId: parseInt(itemSubTypeId),
+        key: key
+    }
+}
+
+export function removeActionFromStagedTrigger(key){
+    return {
+        type: 'REMOVE_ACTION_FROM_STAGED_TRIGGER',
+        key: key
+    }
+}
+
+export function updateItemVariableAssignmentInStagedTrigger(itemType, itemKey, variableIndex, arrayIndex, assignment){
+    return {
+        type: 'UPDATE_ITEM_VARIABLE_ASSIGNMENT_IN_STAGED_TRIGGER',
+        itemType: itemType,
+        itemKey: itemKey,
+        variableIndex: variableIndex,
+        arrayIndex: arrayIndex,
+        assignment: assignment
+    }
+}
+
+export function removeItemVariableAssignmentInStagedTrigger(itemType, itemKey, variableIndex, arrayIndex, assignment){
+    return {
+        type: 'REMOVE_ITEM_VARIABLE_ASSIGNMENT_IN_STAGED_TRIGGER',
+        itemType: itemType,
+        itemKey: itemKey,
+        variableIndex: variableIndex,
+        arrayIndex: arrayIndex
+    }
+}
+
+export function addItemVariableAssignmentSlotInStagedTrigger(itemType, itemKey, variableIndex){
+    return {
+        type: 'ADD_ITEM_VARIABLE_ASSIGNMENT_SLOT_IN_STAGED_TRIGGER',
+        itemType: itemType,
+        itemKey: itemKey,
+        variableIndex: variableIndex
     }
 }

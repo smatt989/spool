@@ -1,8 +1,9 @@
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import {connect} from 'react-redux';
-import {ListGroup, ListGroupItem, Button, ButtonToolbar, ButtonGroup} from 'react-bootstrap';
+import {ListGroup, ListGroupItem, Button, ButtonToolbar, ButtonGroup, Panel} from 'react-bootstrap';
 import {removeTrigger, stageTriggerForEdit, createTrigger} from '../action_creators';
+import {validateTrigger} from '../validation';
 
 const TriggerList = React.createClass({
 
@@ -13,10 +14,23 @@ const TriggerList = React.createClass({
     getTriggerCount: function() {
         return this.props.triggerCount || 0;
     },
+    getMarkers: function() {
+        return this.props.markers || List.of()
+    },
     render: function() {
         const elementClick = this.props.removeTrigger
         const stageTriggerForEdit = this.props.stageTriggerForEdit
         const getTriggerCount = this.getTriggerCount
+        const markers = this.getMarkers()
+
+        const getValidationState = function(trigger){
+            if(validateTrigger(trigger, markers)){
+                return 'info'
+            } else {
+                return 'danger'
+            }
+        }
+
 
         return  <div>
                     <ButtonGroup vertical block>
@@ -24,16 +38,17 @@ const TriggerList = React.createClass({
                     </ButtonGroup>
                     <ListGroup>
                         {this.getTriggers().map((trigger) =>
-                            <li href="#" className="list-group-item" key={trigger.key}>
-                                       <h4>{trigger.title}</h4>
-                                       <div className="object-details">
-                                            Trigger
-                                       </div>
-                                       <ButtonToolbar className="pull-right" >
-                                            <Button onClick={function(){stageTriggerForEdit(trigger.key)}}>Edit</Button>
-                                            <Button onClick={function(e){elementClick(trigger.key); e.stopPropagation()}} bsStyle="danger">Delete</Button>
-                                       </ButtonToolbar>
-                                   </li>)}
+                            <li href="#" className="list-group-item" key={trigger.get('key')}>
+                                <Panel bsStyle={getValidationState(trigger)} header={trigger.get('title')}>
+                                   <div className="object-details">
+                                        Trigger
+                                   </div>
+                                   <ButtonToolbar className="pull-right" >
+                                        <Button onClick={function(){stageTriggerForEdit(trigger)}}>Edit</Button>
+                                        <Button onClick={function(e){elementClick(trigger.get('key')); e.stopPropagation()}} bsStyle="danger">Delete</Button>
+                                   </ButtonToolbar>
+                                 </Panel>
+                               </li>)}
                     </ListGroup>
                 </div>
     }
@@ -57,7 +72,8 @@ const mapDispatchToProps = (dispatch) => {
 function mapStateToProps(state) {
   return {
     triggers: state.get('triggers'),
-    triggerCount: state.get('triggerCount')
+    triggerCount: state.get('triggerCount'),
+    markers: state.get('markers')
   };
 }
 

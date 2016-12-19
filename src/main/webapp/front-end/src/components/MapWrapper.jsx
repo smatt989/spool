@@ -4,7 +4,7 @@ import PureRenderMixin from 'react-addons-pure-render-mixin';
 import {connect} from 'react-redux';
 import {setLatLng, createMarker, stageMarkerForEdit, updateMarker, mapCentered, mapJumped, selectMarker, deselectMarker} from '../action_creators';
 import L from 'leaflet';
-import { List } from 'immutable';
+import {Map, List} from 'immutable';
 import {markerByKey, showProps} from '../utilities';
 
 var _ = require('lodash');
@@ -45,9 +45,9 @@ const MapWrapper = React.createClass({
     this.map.clickOnMarker = false;
   },
   updateMarkerElement: function(marker) {
-    var element = this.markerElementByKey(marker.key);
-    element.setLatLng(marker.latlng).bindPopup('<p>'+marker.title+'</p>');
-    element.title = marker.title
+    var element = this.markerElementByKey(marker.get('key'));
+    element.setLatLng(this.latlngObjectFromMap(marker.get('latlng'))).bindPopup('<p>'+marker.get('title')+'</p>');
+    element.title = marker.get('title')
   },
   markerSelection: function() {
     const selectedKey = this.getSelectedMarker()
@@ -61,9 +61,10 @@ const MapWrapper = React.createClass({
     return _.find(markerElements, function(o){return o.options.key === key})
   },
   markerElementFromMarker: function(marker){
-    return new customMarker(marker.latlng,
-            {key: marker.key, radius: 20, draggable: true}
-            ).bindPopup('<p>'+marker.title+'</p>')
+    const newLatLng = this.latlngObjectFromMap(marker.get('latlng'))
+    return new customMarker(newLatLng,
+            {key: marker.get('key'), radius: 20, draggable: true}
+            ).bindPopup('<p>'+marker.get('title')+'</p>')
   },
   renderMarker: function(newMarker) {
     const removeMarker = this.props.removeMarker
@@ -76,13 +77,12 @@ const MapWrapper = React.createClass({
     const markers = this.getMarkers
 
     const namedEventListener = function(e){
-        var updatedMarker = markerByKey(newMarker.key, markers())
-        updatedMarker.latlng = e.latlng
-        updateMarker(updatedMarker);
+        var updatedMarker = markerByKey(newMarker.get('key'), markers())
+        updateMarker(updatedMarker.set('latlng', Map(e.latlng)));
     }
 
      const selectMarkerMapListener = function(){
-        selectMarker(newMarker.key);
+        selectMarker(newMarker.get('key'));
      };
 
     var map = this.map;
@@ -92,7 +92,7 @@ const MapWrapper = React.createClass({
 
     toInsert.addTo(map)
 
-    toInsert.on('click', function(a){stageMarkerForEdit(newMarker.key);});
+    toInsert.on('click', function(a){stageMarkerForEdit(newMarker.get('key'));});
 
     toInsert.on({mousedown: function () {
              setIsClickOnMarker();
@@ -122,18 +122,21 @@ const MapWrapper = React.createClass({
   },
   removeMarkerLayer: function(oldMarker) {
     var map = this.map;
-    const toRemove = this.markerElementByKey(oldMarker.key)
+    const toRemove = this.markerElementByKey(oldMarker.get('key'))
     map.removeLayer(toRemove);
-    this.markerElements = _.pullAllWith(this.markerElements, oldMarker, function(a, b){return a.key === b.key});
+    this.markerElements = _.pullAllWith(this.markerElements, oldMarker, function(a, b){return a.key === b.get('key')});
   },
   checkMarkerSameness: function(markerA, markerB) {
-    return markerA.latlng === markerB.latlng && markerA.title === markerB.title;
+    return markerA.get('latlng') === markerB.get('latlng') && markerA.get('title') === markerB.get('title');
   },
   centerMap: function(){
+    const latlngObjectFromMap = this.latlngObjectFromMap
     var map = this.map;
     const markers = this.getMarkers();
-    const markerLatLngs = markers.map(function(m){return m.latlng})
-    map.fitBounds(markerLatLngs);
+    const markerLatLngs = markers.map(function(m){
+        return latlngObjectFromMap(m.get('latlng'))
+    });
+    map.fitBounds(markerLatLngs.toArray());
   },
   updateCenteredMap: function() {
     if(this.getForceMapCenter()){
@@ -146,7 +149,10 @@ const MapWrapper = React.createClass({
   },
   mapJumpTo: function(latlng, zoom){
     var map = this.map;
-    map.setView(latlng, zoom);
+    map.setView(this.latlngObjectFromMap(latlng), zoom);
+  },
+  latlngObjectFromMap: function(latlngMap){
+    return {lat: latlngMap.get('lat'), lng: latlngMap.get('lng')};
   },
   zoomLevelFromLocationType: function(locationType){
     switch (locationType){
@@ -171,10 +177,10 @@ const MapWrapper = React.createClass({
   updateMapJumpTo: function(){
     const jumpTo = this.getMapJumpTo()
     if(jumpTo != null){
-        const latlng = jumpTo.latlng
+        const latlng = jumpTo.get('latlng')
         var zoom = this.map.getZoom()
-        if(jumpTo.locationType != null){
-            zoom = this.zoomLevelFromLocationType(jumpTo.locationType);
+        if(jumpTo.get('locationType') != null){
+            zoom = this.zoomLevelFromLocationType(jumpTo.get('locationType'));
         }
         this.mapJumpTo(latlng, zoom);
         this.props.markMapJumped();
@@ -190,24 +196,46 @@ const MapWrapper = React.createClass({
         const elementMarkers = this.markers;
 
         const noNeedToUpdateTest = function(a, b){
-            return !(a.key !== b.key || (a.key === b.key && checkMarkerSameness(a,b)))
+            return !(a.get('key') !== b.get('key') || (a.get('key') === b.get('key') && checkMarkerSameness(a,b)))
         }
 
-        const toCreate = _.differenceBy(stateMarkers, elementMarkers, 'key');
-        const toDelete = _.differenceBy(elementMarkers, stateMarkers, 'key');
-
+        var toCreate = []
         var toUpdate = []
         stateMarkers.map(function(sm){
+            var found = false;
+            var same = false;
             elementMarkers.map(function(em){
-                if(sm.key === em.key && !checkMarkerSameness(sm, em)){
-                    toUpdate.push(sm);
+                if(sm.get('key') === em.get('key')){
+                    found = true;
                 }
-            })
-        })
+                if(checkMarkerSameness(sm, em)){
+                    same = true
+                }
+            });
+            if(!found){
+                toCreate.push(sm);
+            }
+            if(found && !same){
+                toUpdate.push(sm);
+            }
+        });
 
-        //console.log("TO UPDATE: "+toUpdate.length)
-        //console.log("TO CREATE: "+toCreate.length)
-        //console.log("TO DELETE: "+toDelete.length)
+        var toDelete = []
+        elementMarkers.map(function(em){
+            var found = false
+            stateMarkers.map(function(sm){
+                if(em.get('key') === sm.get('key')){
+                    found = true
+                }
+            });
+            if(!found){
+                toDelete.push(em);
+            }
+        });
+
+       // console.log("TO UPDATE: "+toUpdate.length)
+       // console.log("TO CREATE: "+toCreate.length)
+       // console.log("TO DELETE: "+toDelete.length)
 
         toCreate.map(function(marker){
             renderMarker(marker)})
@@ -226,7 +254,7 @@ const MapWrapper = React.createClass({
         const setDoneWithClickOnMarker = this.setDoneWithClickOnMarker
         const getIsClickOnMarker = this.getIsClickOnMarker
 
-        this.markers = []
+        this.markers = List.of()
         this.currentObjectNumber = 0;
         this.markerElements = []
 
@@ -241,7 +269,7 @@ const MapWrapper = React.createClass({
                 setDoneWithClickOnMarker();
             }
         });
-        this.map.on('mousemove', function(a){setCoordinates(a)});
+        //this.map.on('mousemove', function(a){setCoordinates(a)});
         this.map.off('dblclick');
   },
   componentDidMount: function() {
@@ -291,7 +319,7 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(setLatLng(lat, lng));
         },
         addMarker: (callback, title) => {
-            dispatch(createMarker(callback.latlng, title));
+            dispatch(createMarker(Map(callback.latlng), title));
         },
         removeMarker: (key) => {
             dispatch(removeMarker(key))

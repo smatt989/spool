@@ -1,7 +1,7 @@
 package com.example.app.Routes
 
 import com.example.app.SlickRoutes
-import com.example.app.models.{Adventure, JsonWaypoint, Waypoint}
+import com.example.app.models._
 
 trait AppRoutes extends SlickRoutes{
 
@@ -65,6 +65,19 @@ trait AppRoutes extends SlickRoutes{
     val origin = parsedBody.extract[Option[JsonWaypoint]]
 
     Adventure.generateDirections(adventureId, origin.map(_.toModel(adventureId, 0)))
+  }
+
+  get("/specifications/triggers"){
+    contentType = formats("json")
+
+    val specifications = TriggerElementSpecification.getAll
+
+    specifications.map(ss => {
+      JsonTriggerSpecification(
+        ss.filter(_.elementType == TriggerAction).map(_.toJson),
+        ss.filter(_.elementType == TriggerEvent).map(_.toJson)
+      )
+    })
   }
 
 }

@@ -10,6 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object DataImport {
 
   def populateData(db: Database) = {
+    TriggerElementSpecification.saveAll
     val adventure = Adventure(description = Some("This is going to be AMAZING"))
     val saved = Adventure.save(adventure)
     saved.map(s => {

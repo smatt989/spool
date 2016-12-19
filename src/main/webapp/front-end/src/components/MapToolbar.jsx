@@ -1,13 +1,14 @@
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import {connect} from 'react-redux';
+import {Map, List} from 'immutable';
 import {Button, ButtonToolbar, FormGroup, FormControl, Navbar, ListGroup, ListGroupItem} from 'react-bootstrap';
 import {forceMapCenter, mapJumpTo, clearRemoteLocationSearchResults, searchRemoteLocations, searchRemoteLocationsSuccess, searchRemoteLocationsError} from '../action_creators'
 
 const MapToolbar = React.createClass({
     mixins: [PureRenderMixin],
     getSearchResults: function() {
-        return this.props.remoteLocationsList.locations || []
+        return this.props.remoteLocationsList.get('locations') || List.of()
     },
     searchWithQuery: function(event){
         if(event.target.value.length > 2){
@@ -27,7 +28,7 @@ const MapToolbar = React.createClass({
                       <FormControl id="search-input" ref={(input) => {this.searchInput = input}} onKeyUp={this.searchWithQuery} type="text" placeholder="Search" />
                       <ListGroup className="map-search-results">
                         {this.getSearchResults().map(result =>
-                            <ListGroupItem onClick={() => selectSearchResult({lat: result.geometry.coordinates[1], lng: result.geometry.coordinates[0]}, result.properties.layer)} key={result.properties.id} href="#">
+                            <ListGroupItem onClick={() => selectSearchResult(Map({lat: result.geometry.coordinates[1], lng: result.geometry.coordinates[0]}), result.properties.layer)} key={result.properties.id} href="#">
                                 <h6>{result.properties.label}</h6>
                                 <i className="small-details">{result.properties.layer}</i>
                             </ListGroupItem>
