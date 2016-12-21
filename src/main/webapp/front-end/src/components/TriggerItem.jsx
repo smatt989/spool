@@ -5,6 +5,7 @@ import {connect} from 'react-redux';
 import {Modal, Button, FormControl, Panel, Accordion, ButtonGroup, DropdownButton, MenuItem, InputGroup, Form, Col, Row} from 'react-bootstrap';
 import {VariableFormContainer} from './VariableForm'
 import {showProps} from '../utilities';
+import {List} from 'immutable';
 import {updateItemOfStagedTrigger, removeActionFromStagedTrigger} from '../action_creators';
 import _ from 'lodash';
 
@@ -17,7 +18,7 @@ const TriggerItem = React.createClass({
     return this.props.item || null;
   },
   itemSubTypeById: function(id){
-    return _.find(this.getOptions(), function(o){return o.id === parseInt(id)})
+    return this.getOptions().find(function(o){return o.get('id') === id})
   },
   arityIsMany: function(){
     return this.props.arity === "many"
@@ -41,9 +42,9 @@ const TriggerItem = React.createClass({
       const itemSubTypeId = item.get('itemSubTypeId')
       if(itemSubTypeId){
         const itemSubType = this.itemSubTypeById(itemSubTypeId)
-        const variables = _.get(itemSubType, 'variables', [])
+        const variables = itemSubType.get('variables', List.of())
         variableForm = variables.map(function(v, index){
-            const variableContent = item.getIn(['varAssignments', index])
+            const variableContent = item.getIn(['varAssignments', index, 'varAssignment'])
             return <VariableFormContainer elementType={elementType} index={index} itemKey={key} key={index} currentAssignment={variableContent} variableDetails={v} />
         })
       }
@@ -52,7 +53,7 @@ const TriggerItem = React.createClass({
                 <FormControl value={itemSubTypeId} componentClass="select" placeholder="select" onChange={(a)=> updateItemOfStagedTrigger(elementType, a.target.value, key)}>
                   <option value="select">select {this.getElementType()}</option>
                   {this.getOptions().map((o) =>
-                      <option key={o.title} value={o.id}>{o.title}</option>)}
+                      <option key={o.get('id')} value={o.get('id')}>{o.get('title')}</option>)}
                 </FormControl>
                 {deleteButton}
                 {variableForm}

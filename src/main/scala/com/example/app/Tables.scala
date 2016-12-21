@@ -48,12 +48,13 @@ object Tables {
     def triggerElementType = foreignKey("TRIGGER_ELEMENT_VARIABLES_TO_TRIGGER_ELEMENT_SUB_TYPE_FK", triggerElementSubTypeId, triggerElementSubTypes)(_.id)
   }
 
-  class Triggers(tag: Tag) extends Table[(Int, String, Int)](tag, "TRIGGERS") with HasIdColumn[Int] {
+  class Triggers(tag: Tag) extends Table[(Int, String, Int, Int)](tag, "TRIGGERS") with HasIdColumn[Int] {
     def id = column[Int]("TRIGGER_ID", O.PrimaryKey, O.AutoInc)
     def name = column[String]("NAME")
     def adventureId = column[Int]("ADVENTURE_ID")
+    def order = column[Int]("ORDER_VALUE")
 
-    def * = (id, name, adventureId)
+    def * = (id, name, adventureId, order)
 
     def adventure = foreignKey("TRIGGERS_TO_ADVENTURE_FK", adventureId, adventures)(_.id)
   }

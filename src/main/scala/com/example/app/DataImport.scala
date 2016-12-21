@@ -16,9 +16,9 @@ object DataImport {
     saved.map(s => {
       val adventureId = s.id
       val waypoints = Seq(
-        JsonWaypoint(latitude = 40.775535, longitude = -73.961310),
-        JsonWaypoint(latitude = 40.729324, longitude = -73.981329),
-        JsonWaypoint(name = Some("CHA AN!!"), latitude = 40.729612, longitude = -73.988141)
+        JsonWaypoint(latlng = LatLng(40.775535, -73.961310)),
+        JsonWaypoint(latlng = LatLng(40.729324, -73.981329)),
+        JsonWaypoint(title = Some("CHA AN!!"), LatLng(40.729612, -73.988141))
       ).zipWithIndex.map{case (w, index) => w.toModel(adventureId, index)}
       Waypoint.saveAdventureWaypoints(adventureId, waypoints)
     })

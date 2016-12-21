@@ -4,6 +4,7 @@ import PureRenderMixin from 'react-addons-pure-render-mixin';
 import {connect} from 'react-redux';
 import {Modal, Button, FormControl, Panel, Accordion, ButtonGroup, DropdownButton, MenuItem, InputGroup, Form, Col, Row} from 'react-bootstrap';
 import {showProps} from '../utilities';
+import {List, Map} from 'immutable';
 import {ObjectVariableFormContainer} from './ObjectVariableForm';
 import {IntegerVariableFormContainer} from './IntegerVariableForm';
 import {addItemVariableAssignmentSlotInStagedTrigger} from '../action_creators';
@@ -36,21 +37,21 @@ const VariableForm = React.createClass({
         var variableSelection;
         var aNewVariable;
 
-        if(this.getVariableDetails().variableArity !== "one"){
+        if(this.getVariableDetails().get('variableArity') !== "one"){
             aNewVariable = <Button bsStyle="primary" onClick={() => addItemVariableAssignmentSlotInStagedTrigger(elementType, itemKey, variableIndex)}>Add another</Button>
         }
 
         var variableForms = [];
-        if(this.getVariableDetails().variableType === "object"){
+        if(this.getVariableDetails().get('variableType') === "object"){
             this.getCurrentAssignment().map(function(v, i){
                             variableForms.push(<ObjectVariableFormContainer elementType={elementType} itemKey={itemKey} selection={v} variableIndex={variableIndex} arrayIndex={i} key={i} />) })
-        } else if(this.getVariableDetails().variableType === "integer"){
+        } else if(this.getVariableDetails().get('variableType') === "integer"){
             this.getCurrentAssignment().map(function(v, i){
                             variableForms.push(<IntegerVariableFormContainer elementType={elementType} itemKey={itemKey} selection={v} variableIndex={variableIndex} arrayIndex={i} key={i} />) })
         }
 
         return <div>
-            <h4>{this.getVariableDetails().name}</h4>
+            <h4>{this.getVariableDetails().get('name')}</h4>
              {variableForms}
             {aNewVariable}
         </div>

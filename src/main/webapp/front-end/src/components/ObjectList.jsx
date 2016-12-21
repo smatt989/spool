@@ -59,7 +59,7 @@ const mapDispatchToProps = (dispatch) => {
 
 function mapStateToProps(state) {
   return {
-    markers: state.get('markers')
+    markers: state.get('markers', List.of())
   };
 }
 

@@ -26,7 +26,7 @@ const IntegerVariableForm = React.createClass({
         return this.props.elementType || null
     },
     getSelectionValue: function(){
-       return this.getSelection() ? this.getSelection().get('integer') : ""
+       return this.getSelection() ? this.getSelection().get('integerValue') : ""
     },
     getValidationState: function() {
           const integer = this.getSelectionValue();
@@ -49,7 +49,7 @@ const IntegerVariableForm = React.createClass({
         const deleteButton = arrayIndex > 0 ? <Button bsStyle="danger" onClick={() => removeItemVariableAssignmentInStagedTrigger(elementType, itemKey, variableIndex, arrayIndex)}>Delete</Button> : ""
 
         const onChangeFunction = function(a){
-            updateItemVariableAssignmentInStagedTrigger(elementType, itemKey, variableIndex, arrayIndex, Map({integer: parseInt(a.target.value)}))
+            updateItemVariableAssignmentInStagedTrigger(elementType, itemKey, variableIndex, arrayIndex, Map({integerValue: parseInt(a.target.value)}))
         }
 
         return <div>
@@ -72,7 +72,7 @@ const mapDispatchToProps = (dispatch) => {
     return {
             updateItemVariableAssignmentInStagedTrigger: (itemType, itemKey, variableIndex, arrayIndex, assignment) => {
                 var newAssignment = null
-                if(Number.isInteger(assignment.get('integer'))){
+                if(Number.isInteger(assignment.get('integerValue'))){
                     newAssignment = assignment
                 }
                 dispatch(updateItemVariableAssignmentInStagedTrigger(itemType, itemKey, variableIndex, arrayIndex, newAssignment))

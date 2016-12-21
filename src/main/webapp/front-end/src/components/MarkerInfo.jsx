@@ -54,7 +54,7 @@ const MarkerInfo = React.createClass({
                  <Modal.Footer>
                    <Button onClick={unstageMarkerForEdit}>Close</Button>
                    <Button onClick={remove} bsStyle="danger">Delete</Button>
-                   <Button onClick={() => save(marker)} bsStyle="primary">Save changes</Button>
+                   <Button onClick={() => save(marker)} bsStyle="primary">Keep changes</Button>
                  </Modal.Footer>
                </Modal>
         }

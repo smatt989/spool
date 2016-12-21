@@ -13,6 +13,19 @@ export function setState(state) {
     };
 }
 
+export function cleanState() {
+    return {
+        type: 'CLEAN_STATE'
+    }
+}
+
+export function setAdventureId(id){
+    return {
+        type: 'SET_ADVENTURE_ID',
+        id: id
+    }
+}
+
 export function setLatLng(lat, lng){
     return {
         type: 'SET_LAT_LNG',
@@ -66,6 +79,88 @@ export function mapJumpTo(latlng, locationType) {
 export function mapJumped(){
     return {
         type: 'MAP_JUMPED'
+    }
+}
+
+export function loadTriggerElementSubTypes(){
+    const request = axios({
+        method: 'get',
+        url: `${domain}/specifications/triggers`,
+        header: []
+    });
+
+    return {
+        type: 'LOAD_TRIGGER_ELEMENT_SUB_TYPES',
+        payload: request
+    }
+}
+
+export function loadTriggerElementSubTypesSuccess(loaded){
+    return {
+        type: 'LOAD_TRIGGER_ELEMENT_SUB_TYPES_SUCCESS',
+        payload: loaded
+    }
+}
+
+export function loadTriggerElementSubTypesError(error){
+    return {
+        type: 'LOAD_TRIGGER_ELEMENT_SUB_TYPES_ERROR',
+        payload: error
+    }
+}
+
+export function loadAdventure(id){
+    const request = axios({
+        method: 'get',
+        url: `${domain}/adventures/${id}`,
+        header: []
+    });
+
+    return {
+        type: 'LOAD_ADVENTURE',
+        payload: request
+    }
+}
+
+export function loadAdventureSuccess(loaded){
+    return {
+        type: 'LOAD_ADVENTURE_SUCCESS',
+        payload: loaded
+    }
+}
+
+export function loadAdventureError(error){
+    return {
+        type: 'LOAD_ADVENTURE_ERROR',
+        error: error
+    }
+}
+
+export function saveAdventure(adventure){
+    const request = axios({
+        method: 'post',
+        url: `${domain}/adventures/save`,
+        data: adventure.toJS(),
+        header: []
+    })
+
+    return {
+        type: 'SAVE_ADVENTURE',
+        payload: request
+    }
+}
+
+export function saveAdventureSuccess(loaded){
+    return {
+        type: 'SAVE_ADVENTURE_SUCCESS',
+        payload: loaded
+    }
+}
+
+export function saveAdventureError(error){
+    return {
+        type: 'SAVE_ADVENTURE_ERROR',
+        error: error
     }
 }
 

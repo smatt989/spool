@@ -1,8 +1,8 @@
 import {Map, List} from 'immutable';
 import {itemSubTypeByItemTypeAndId} from './utilities';
 
-export function validateTrigger(trigger, objects){
-    const r = triggerHasKey(trigger) && hasOneEvent(trigger) && hasAtLeastOneAction(trigger) && hasValidEvent(trigger, objects) && hasValidActions(trigger, objects)
+export function validateTrigger(trigger, objects, triggerModel){
+    const r = triggerHasKey(trigger) && hasOneEvent(trigger) && hasAtLeastOneAction(trigger) && hasValidEvent(trigger, objects, triggerModel) && hasValidActions(trigger, objects, triggerModel)
     if(!r){
         console.log("fail: validateTrigger")
     }
@@ -18,6 +18,19 @@ function objectVariableAssignmentIsAValidObject(variableAssignment, objects){
         return set.includes(a.get('objectKey'))})
     if(!r){
         console.log("fail: objectVariableAssignmentIsAValidObject")
+    }
+    return r
+}
+
+function integerVariableAssignmentIsAValidInteger(variableAssignment){
+    const r = variableAssignment.every(function(a){
+        if(!a){
+            return false
+        }
+        return Number.isInteger(a.get('integerValue'))
+    })
+    if(!r){
+        console.log("fail: integerVariableAssignmentIsAValidInteger")
     }
     return r
 }
@@ -38,15 +51,15 @@ function hasOneEvent(trigger){
         return r
 }
 
-function hasValidEvent(trigger, objects){
-    const r = validTriggerItem(trigger.get('event'), "event", objects)
+function hasValidEvent(trigger, objects, triggerModel){
+    const r = validTriggerItem(trigger.get('event'), "event", objects, triggerModel)
         if(!r){
             console.log("fail: hasValidEvent")
         }
         return r
 }
 
-function hasAtLeastOneAction(trigger){
+function hasAtLeastOneAction(trigger, triggerModel){
     const r = trigger.get('actions').size >= 1;
         if(!r){
             console.log("fail: hasAtLeastOneAction")
@@ -54,26 +67,25 @@ function hasAtLeastOneAction(trigger){
         return r
 }
 
-function hasValidActions(trigger, objects){
-    const r = trigger.get('actions').every(function(a){return validTriggerItem(a, "action", objects)})
+function hasValidActions(trigger, objects, triggerModel){
+    const r = trigger.get('actions').every(function(a){return validTriggerItem(a, "action", objects, triggerModel)})
         if(!r){
             console.log("fail: hasValidActions")
         }
         return r
 }
 
-function validTriggerItem(item, itemType, objects){
+function validTriggerItem(item, itemType, objects, triggerModel){
     const itemSubTypeId = item.get('itemSubTypeId');
-    const itemSubType = itemSubTypeByItemTypeAndId(itemType, itemSubTypeId)
+    const itemSubType = itemSubTypeByItemTypeAndId(itemType, itemSubTypeId, triggerModel)
 
     if(!itemSubType){
         return false
     }
 
-    const variables = itemSubType.variables ? itemSubType.variables : []
-    const variableAssignments = item.get('varAssignments')
+    const variables = itemSubType.get('variables', List.of())
 
-    const r = hasValidSubType(itemSubType) && hasRightNumberOfVariables(item, itemType) && hasAllValidVariableAssignments(item, itemType, objects)
+    const r = hasValidSubType(itemSubType) && hasRightNumberOfVariables(item, itemType, triggerModel) && hasAllValidVariableAssignments(item, itemType, objects, triggerModel)
     if(!r){
         console.log("fail: validTriggerItem")
     }
@@ -88,29 +100,24 @@ function hasValidSubType(subType){
         return r
 }
 
-function hasRightNumberOfVariables(item, itemType){
+function hasRightNumberOfVariables(item, itemType, triggerModel){
     const itemSubTypeId = item.get('itemSubTypeId');
-    const itemSubType = itemSubTypeByItemTypeAndId(itemType, itemSubTypeId)
-    var r;
-    if(!itemSubType.variables){
-        r = item.get('varAssignments').size === 0
-    } else {
-        r = itemSubType.variables.length === item.get('varAssignments').size
-    }
+    const itemSubType = itemSubTypeByItemTypeAndId(itemType, itemSubTypeId, triggerModel)
+    const r = itemSubType.get('variables', List.of()).size === item.get('varAssignments', List.of()).size
     if(!r){
         console.log("fail: hasRightNumberOfVariables")
     }
     return r
 }
 
-function hasAllValidVariableAssignments(item, itemType, objects){
+function hasAllValidVariableAssignments(item, itemType, objects, triggerModel){
     const itemSubTypeId = item.get('itemSubTypeId');
-    const itemSubType = itemSubTypeByItemTypeAndId(itemType, itemSubTypeId)
+    const itemSubType = itemSubTypeByItemTypeAndId(itemType, itemSubTypeId, triggerModel)
 
-    const variables = itemSubType.variables ? itemSubType.variables : []
-    const variableAssignments = item.get('varAssignments')
+    const variables = itemSubType.get('variables', List.of())
+    const variableAssignments = item.get('varAssignments', List.of())
 
-    const r = variableAssignments.every(function(va, index){return validVariableAssignment(variables[index], va, objects)})
+    const r = variableAssignments.every(function(va, index){return validVariableAssignment(variables.get(index), va, objects)})
     if(!r){
         console.log("fail: hasAllValidVariableAssignments")
     }
@@ -119,10 +126,10 @@ function hasAllValidVariableAssignments(item, itemType, objects){
 
 function validVariableAssignment(variable, variableAssignment, objects){
     var s;
-    if(variable.variableType === "object"){
-        s = objectVariableAssignmentIsAValidObject(variableAssignment, objects)
-    } else {
-        s = true;
+    if(variable.get('variableType') === "object"){
+        s = objectVariableAssignmentIsAValidObject(variableAssignment.get('varAssignment'), objects)
+    } else if(variable.get('variableType') === "integer") {
+        s = integerVariableAssignmentIsAValidInteger(variableAssignment.get('varAssignment'));
     }
     const r = variableAssignmentRightArity(variable, variableAssignment) && variableIsAssigned(variableAssignment) && s
     if(!r){
@@ -132,7 +139,7 @@ function validVariableAssignment(variable, variableAssignment, objects){
 }
 
 function variableAssignmentRightArity(variable, variableAssignment){
-    const arity = variable.variableArity
+    const arity = variable.get('variableArity')
     var r;
     if(arity === "one"){
         r = variableAssignment.size === 1

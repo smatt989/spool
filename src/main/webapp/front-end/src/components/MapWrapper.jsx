@@ -136,7 +136,9 @@ const MapWrapper = React.createClass({
     const markerLatLngs = markers.map(function(m){
         return latlngObjectFromMap(m.get('latlng'))
     });
-    map.fitBounds(markerLatLngs.toArray());
+    if(markerLatLngs.size > 0){
+        map.fitBounds(markerLatLngs.toArray());
+    }
   },
   updateCenteredMap: function() {
     if(this.getForceMapCenter()){

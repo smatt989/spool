@@ -2,6 +2,7 @@ package com.example.app.Routes
 
 import com.example.app.SlickRoutes
 import com.example.app.models._
+import org.json4s.JsonAST.JObject
 
 trait AppRoutes extends SlickRoutes{
 
@@ -15,7 +16,7 @@ trait AppRoutes extends SlickRoutes{
     </html>
   }
 
-  post("/adventures/save") {
+/*  post("/adventures/save") {
     contentType = formats("json")
 
     val adventure = parsedBody.extract[Adventure]
@@ -29,7 +30,7 @@ trait AppRoutes extends SlickRoutes{
     val adventureId = {params("id")}.toInt
 
     Adventure.byId(adventureId)
-  }
+  }*/
 
   get("/adventures/available") {
     contentType = formats("json")
@@ -74,10 +75,35 @@ trait AppRoutes extends SlickRoutes{
 
     specifications.map(ss => {
       JsonTriggerSpecification(
-        ss.filter(_.elementType == TriggerAction).map(_.toJson),
-        ss.filter(_.elementType == TriggerEvent).map(_.toJson)
+        ss.filter(_.elementType == TriggerAction).sortBy(_.id).map(_.toJson),
+        ss.filter(_.elementType == TriggerEvent).sortBy(_.id).map(_.toJson)
       )
     })
+  }
+
+  post("/adventures/save") {
+    contentType = formats("json")
+
+    val adventure = parsedBody.extract[JsonAdventure].toModel
+
+    val futureAdventureId = FullAdventure.save(adventure)
+
+    futureAdventureId.flatMap(id => FullAdventure.getById(id).map(_.toJson))
+  }
+
+  get("/adventures/:id") {
+    contentType = formats("json")
+
+    val adventureId = {params("id")}.toInt
+
+    FullAdventure.getById(adventureId).map(_.toJson)
+  }
+
+  get("/assignments") {
+    contentType = formats("json")
+
+    TriggerVariableAssignment.getAll
+
   }
 
 }

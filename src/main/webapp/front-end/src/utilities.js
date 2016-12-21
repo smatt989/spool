@@ -1,4 +1,3 @@
-import {triggerModel} from './triggerModel';
 var _ = require('lodash');
 
 export function markerByKey(key, markers) {
@@ -15,12 +14,11 @@ export function triggerByKey(key, triggers){
     return _.find(triggers.toArray(), function(o){return o.get('key') === key});
 }
 
-export function itemSubTypeByItemTypeAndId(itemType, itemSubTypeId){
-    console.log("item type: "+itemType)
+export function itemSubTypeByItemTypeAndId(itemType, itemSubTypeId, triggerModel){
     if(itemType === "action"){
-        return _.find(triggerModel.actions, function(o){return o.id === itemSubTypeId})
+        return triggerModel.get('actions').find(function(o){return o.get('id') === itemSubTypeId})
     }else if(itemType === "event"){
-        return _.find(triggerModel.events, function(o){return o.id === itemSubTypeId})
+        return triggerModel.get('events').find(function(o){return o.get('id') === itemSubTypeId})
     }else {
         console.log("VERY BAD")
     }

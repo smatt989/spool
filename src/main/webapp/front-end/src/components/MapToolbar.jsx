@@ -2,8 +2,11 @@ import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import {connect} from 'react-redux';
 import {Map, List} from 'immutable';
+import {validateTrigger} from '../validation';
 import {Button, ButtonToolbar, FormGroup, FormControl, Navbar, ListGroup, ListGroupItem} from 'react-bootstrap';
-import {forceMapCenter, mapJumpTo, clearRemoteLocationSearchResults, searchRemoteLocations, searchRemoteLocationsSuccess, searchRemoteLocationsError} from '../action_creators'
+import {forceMapCenter, mapJumpTo, clearRemoteLocationSearchResults, searchRemoteLocations, searchRemoteLocationsSuccess, searchRemoteLocationsError, saveAdventure, saveAdventureSuccess, saveAdventureError, cleanState} from '../action_creators'
+
+const hashHistory = require('react-router').hashHistory;
 
 const MapToolbar = React.createClass({
     mixins: [PureRenderMixin],
@@ -21,6 +24,40 @@ const MapToolbar = React.createClass({
     },
     render: function(){
         const selectSearchResult = this.selectSearchResult
+        const cleanState = this.props.cleanState;
+
+
+        const newAdventure = function(){
+            cleanState();
+            hashHistory.push("/");
+        }
+
+        const markers = this.props.markers;
+        const triggers = this.props.triggers;
+
+        var triggerModel;
+        if(this.props.triggerModel){
+            triggerModel = this.props.triggerModel.get('specification')
+        } else{
+            triggerModel = Map()
+        }
+
+        const getValidationState = function(trigger){
+            if(triggerModel.size > 0 && validateTrigger(trigger, markers, triggerModel)){
+                return 'info'
+            } else {
+                return 'danger'
+            }
+        }
+
+        const saveAdventure = () => {
+            if(triggers.every(function(trigger){return validateTrigger(trigger, markers, triggerModel)})){
+                this.props.saveAdventure(this.props.id, this.props.name, this.props.description, triggers, markers)
+            } else {
+                alert("please check that all your triggers are working")
+            }
+        }
+
         return   <ButtonToolbar>
                    <Button onClick={this.props.centerMap}>Center Map</Button>
                    <Navbar.Form pullLeft>
@@ -36,13 +73,21 @@ const MapToolbar = React.createClass({
                       </ListGroup>
                     </FormGroup>
                     </Navbar.Form>
+                    <Button onClick={saveAdventure}>Save Adventure</Button>
+                    <Button onClick={newAdventure}>New Adventure</Button>
                  </ButtonToolbar>;
     }
 });
 
 function mapStateToProps(state) {
   return {
-    remoteLocationsList: state.get('remoteLocationsList')
+    remoteLocationsList: state.get('remoteLocationsList'),
+    id: state.get('id', 0),
+    name: state.get('name', null),
+    description: state.get('description', null),
+    triggers: state.get('triggers', List.of()),
+    markers: state.get('markers', List.of()),
+    triggerModel: state.get('triggerElementSubTypeSpecification')
   };
 }
 
@@ -61,7 +106,19 @@ const mapDispatchToProps = (dispatch) => {
         },
         clearRemoteLocationSearchResults: () => {
             dispatch(clearRemoteLocationSearchResults())
-        }
+        },
+        saveAdventure: (id, name, description, triggers, markers) => {
+            const adventureObject = Map({id: id, name: name, description: description, triggers: triggers, markers: markers});
+            dispatch(saveAdventure(adventureObject)).then((response) => {
+                if(!response.error){
+                    dispatch(saveAdventureSuccess(response.payload.data));
+                    hashHistory.push('/adventures/'+response.payload.data.id+'/edit')
+                } else {
+                    dispatch(saveAdventureError(response.error));
+                }
+            });
+        },
+        cleanState: () => dispatch(cleanState())
 
     }
 }

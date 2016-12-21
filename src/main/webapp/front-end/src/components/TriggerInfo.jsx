@@ -5,7 +5,6 @@ import {connect} from 'react-redux';
 import {Modal, Button, FormControl, Panel, ListGroup} from 'react-bootstrap';
 import {updateTrigger, unstageTriggerForEdit, removeTrigger, addActionToStagedTrigger, updateTitleOfStagedTrigger} from '../action_creators';
 import {triggerByKey} from '../utilities';
-import {triggerModel} from '../triggerModel';
 import {TriggerItemContainer} from './TriggerItem';
 import {validateTrigger} from '../validation';
 
@@ -41,7 +40,9 @@ const TriggerInfo = React.createClass({
 
         const event = trigger.get('event')
 
-        const danger = validateTrigger(trigger, markers) ? <p>THIS IS GOOD</p> : <p>THIS IS BAD</p>
+        const triggerModel = this.props.triggerModel.get('specification')
+
+        const danger = validateTrigger(trigger, markers, triggerModel) ? <p>THIS IS GOOD</p> : <p>THIS IS BAD</p>
 
         return <Modal show={show} onHide={unstageTriggerForEdit}>
                  <Modal.Header closeButton>
@@ -54,12 +55,12 @@ const TriggerInfo = React.createClass({
                      <div>
 
                          <Panel header="Event">
-                            <TriggerItemContainer key={event.get('key')} item={event} arity="one" options={triggerModel.events} elementType="event" />
+                            <TriggerItemContainer key={event.get('key')} item={event} arity="one" options={triggerModel.get('events')} elementType="event" />
                          </Panel>
                          <Panel header="Actions" eventKey={3}>
                             <ListGroup>
                                  {trigger.get('actions').map(function(a){
-                                     return <li key={a.get('key')} className="list-group-item"><TriggerItemContainer key={a.get('key')} item={a} arity="many" options={triggerModel.actions} elementType="action" /></li>
+                                     return <li key={a.get('key')} className="list-group-item"><TriggerItemContainer key={a.get('key')} item={a} arity="many" options={triggerModel.get('actions')} elementType="action" /></li>
                                  })}
                              </ListGroup>
                              <Button bsStyle="primary" onClick={() => addAction()}>Add an Action</Button>
@@ -71,7 +72,7 @@ const TriggerInfo = React.createClass({
                  <Modal.Footer>
                    <Button onClick={unstageTriggerForEdit}>Close</Button>
                    <Button onClick={remove} bsStyle="danger">Delete</Button>
-                   <Button onClick={() => save(trigger)} bsStyle="primary">Save changes</Button>
+                   <Button onClick={() => save(trigger)} bsStyle="primary">Keep changes</Button>
                  </Modal.Footer>
                </Modal>
         }
@@ -82,7 +83,8 @@ function mapStateToProps(state) {
   return {
     editingTrigger: state.get('editingTrigger'),
     triggers: state.get('triggers'),
-    markers: state.get('markers')
+    markers: state.get('markers'),
+    triggerModel: state.get('triggerElementSubTypeSpecification')
   };
 }
 

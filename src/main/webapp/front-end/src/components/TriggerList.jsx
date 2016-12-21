@@ -3,6 +3,7 @@ import PureRenderMixin from 'react-addons-pure-render-mixin';
 import {connect} from 'react-redux';
 import {ListGroup, ListGroupItem, Button, ButtonToolbar, ButtonGroup, Panel} from 'react-bootstrap';
 import {removeTrigger, stageTriggerForEdit, createTrigger} from '../action_creators';
+import {Map, List} from 'immutable';
 import {validateTrigger} from '../validation';
 
 const TriggerList = React.createClass({
@@ -22,9 +23,15 @@ const TriggerList = React.createClass({
         const stageTriggerForEdit = this.props.stageTriggerForEdit
         const getTriggerCount = this.getTriggerCount
         const markers = this.getMarkers()
+        var triggerModel;
+        if(this.props.triggerModel){
+            triggerModel = this.props.triggerModel.get('specification')
+        } else{
+            triggerModel = Map()
+        }
 
         const getValidationState = function(trigger){
-            if(validateTrigger(trigger, markers)){
+            if(triggerModel.size > 0 && validateTrigger(trigger, markers, triggerModel)){
                 return 'info'
             } else {
                 return 'danger'
@@ -71,9 +78,10 @@ const mapDispatchToProps = (dispatch) => {
 
 function mapStateToProps(state) {
   return {
-    triggers: state.get('triggers'),
+    triggers: state.get('triggers', List.of()),
     triggerCount: state.get('triggerCount'),
-    markers: state.get('markers')
+    markers: state.get('markers', List.of()),
+    triggerModel: state.get('triggerElementSubTypeSpecification')
   };
 }
 
