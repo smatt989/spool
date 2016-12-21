@@ -9,11 +9,16 @@ trait AppRoutes extends SlickRoutes{
 
   get("/") {
     <html>
-      <body>
-        <div id="app"></div>
-        <script src="/front-end/dist/bundle.js"></script>
-      </body>
-    </html>
+      <head>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css" />
+          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.2/dist/leaflet.css" />
+          <link rel="stylesheet" href="app.css" />
+        </head>
+        <body>
+          <div id="app"></div>
+          <script src="bundle.js"></script>
+        </body>
+      </html>
   }
 
 /*  post("/adventures/save") {
