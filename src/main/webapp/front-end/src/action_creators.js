@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const fullstack = false;
+const fullstack = true;
 const domain = fullstack ? "" : "http://localhost:8080";
 
 const mapzen = "https://search.mapzen.com/v1/search";
