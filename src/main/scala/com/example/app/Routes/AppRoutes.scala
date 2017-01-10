@@ -37,7 +37,7 @@ trait AppRoutes extends SlickRoutes{
     Adventure.byId(adventureId)
   }*/
 
-  get("/adventures/available") {
+  get("/adventures") {
     contentType = formats("json")
 
     Adventure.getAll
