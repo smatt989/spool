@@ -4,6 +4,7 @@ import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import com.example.app.models.{User, UserLogin, UserSession}
 import org.scalatra.auth.ScentryAuthStore.CookieAuthStore
+import org.scalatra.auth.ScentryAuthStore.SessionAuthStore
 import org.scalatra.auth.strategy.BasicAuthSupport
 import org.scalatra.{CookieOptions, ScalatraBase}
 import org.scalatra.auth.{Scentry, ScentryConfig, ScentryStrategy, ScentrySupport}
@@ -47,10 +48,24 @@ class PasswordStrategy(protected val app: ScalatraBase) extends ScentryStrategy[
   val password = "password"
 
   override def isValid(implicit request: HttpServletRequest) =
-    (app.params.get(username).isDefined || app.params.get(email).isDefined) && app.params.get(password).isDefined
+    (request.getHeader(username) != null || request.getHeader(email) != null) && request.getHeader(password) != null
+  //(app.params.get(username).isDefined || app.params.get(email).isDefined) && app.params.get(password).isDefined
 
-  def authenticate()(implicit request: HttpServletRequest, response: HttpServletResponse): Option[User] =
-    User.authenticatedUser(UserLogin(app.params.get(username), app.params.get(email), app.params(password)))
+  def authenticate()(implicit request: HttpServletRequest, response: HttpServletResponse): Option[User] = {
+    val uName = headerOption(request, username)
+    val eMail = headerOption(request, email)
+    User.authenticatedUser(UserLogin(uName, eMail, request.getHeader(password)))
+    //User.authenticatedUser(UserLogin(app.params.get(username), app.params.get(email), app.params(password)))
+  }
+
+  private[this] def headerOption(request: HttpServletRequest, key: String) = {
+    val h = request.getHeader(key)
+    if (h != null) {
+      Some(h)
+    } else {
+      None
+    }
+  }
 
 }
 
@@ -72,7 +87,23 @@ trait MyAuthentication extends ScentrySupport[User] with BasicAuthSupport[User] 
   protected val scentryConfig = (new ScentryConfig {}).asInstanceOf[ScentryConfiguration]
 
   override protected def configureScentry {
-    val authCookieOptions = CookieOptions(httpOnly = true)
+
+    scentry.store = new SessionAuthStore(self) {
+      override def set(value: String)(implicit request: HttpServletRequest, response: HttpServletResponse) = {
+        super.set(value)
+        response.headers(ScalatraAuthValue) = value
+      }
+
+      override def get(implicit request: HttpServletRequest, response: HttpServletResponse) = {
+        request.header(ScalatraAuthValue).get
+      }
+
+      override def invalidate()(implicit request: HttpServletRequest, response: HttpServletResponse) = {
+        response.headers(ScalatraAuthValue) = null
+      }
+    }
+
+/*    val authCookieOptions = CookieOptions(httpOnly = true)
     scentry.store = new CookieAuthStore(self)(authCookieOptions) {
       def set(value: String) {
         super.set(value)
@@ -89,7 +120,7 @@ trait MyAuthentication extends ScentrySupport[User] with BasicAuthSupport[User] 
         cookies.update(Scentry.scentryAuthKey, "")(authCookieOptions.copy(maxAge = 0))
         response.headers(ScalatraAuthValue) = null
       }
-    }
+    }*/
     scentry.unauthenticated { unauthenticated() }
   }
 
