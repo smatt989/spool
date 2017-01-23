@@ -11,7 +11,7 @@ object DataImport {
 
   def populateData(db: Database) = {
     TriggerElementSpecification.saveAll
-    val adventure = Adventure(description = Some("This is going to be AMAZING"))
+/*    val adventure = Adventure(description = Some("This is going to be AMAZING"))
     val saved = Adventure.save(adventure)
     saved.map(s => {
       val adventureId = s.id
@@ -21,7 +21,7 @@ object DataImport {
         JsonWaypoint(title = Some("CHA AN!!"), LatLng(40.729612, -73.988141))
       ).zipWithIndex.map{case (w, index) => w.toModel(adventureId, index)}
       Waypoint.saveAdventureWaypoints(adventureId, waypoints)
-    })
+    })*/
   }
 
 }

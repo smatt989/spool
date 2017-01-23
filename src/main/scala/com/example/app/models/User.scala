@@ -13,7 +13,7 @@ case class User(username: String, email: String, hashedPassword: String, id: Int
     this.copy(id = id)
 
   lazy val toJson =
-    UserJson(username, email, id)
+    UserJson(username, id)
 }
 
 case class UserCreate(username: String, email: String, password: String) {
@@ -31,7 +31,7 @@ case class UserLogin(username: Option[String], email: Option[String], password: 
 
 }
 
-case class UserJson(username: String, email: String, id: Int)
+case class UserJson(username: String, id: Int)
 
 object User extends Updatable[User, (Int, String, String, String), Tables.Users]{
 
@@ -60,11 +60,11 @@ object User extends Updatable[User, (Int, String, String, String), Tables.Users]
   private[this] def unauthenticatedUserFromUserLogin(userLogin: UserLogin) = {
 
     Await.result({if(userLogin.username.isDefined)
-      db.run(table.filter(_.username === userLogin.username.get).result).map(_.headOption.map(reify).getOrElse{
+      db.run(table.filter(_.username.toLowerCase === userLogin.username.get.toLowerCase()).result).map(_.headOption.map(reify).getOrElse{
         throw new Exception("No user with that username")
       })
     else if(userLogin.email.isDefined)
-      db.run(table.filter(_.email === userLogin.email.get).result).map(_.headOption.map(reify).getOrElse{
+      db.run(table.filter(_.email.toLowerCase === userLogin.email.get.toLowerCase()).result).map(_.headOption.map(reify).getOrElse{
         throw new Exception("No user with that email")
       })
     else

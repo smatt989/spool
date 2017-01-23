@@ -8,7 +8,7 @@ case class FullAdventure(id: Int = 0,
                          waypoints: Seq[Waypoint],
                          triggers: Seq[FullTrigger]) {
 
-  lazy val dbRow = Adventure(id, name, description)
+  def dbRow(creatorUserId: Int) = Adventure(id, creatorUserId, name, description)
 
   def toJson = JsonAdventure(name, description, waypoints.map(_.toJson), triggers.map(_.toJson), id)
 }
@@ -23,9 +23,9 @@ case class FullTriggerElement(elementType: TriggerElementType, elementSubTypeId:
   def dbRow(triggerId: Int, order: Int) = TriggerElement(elementType, elementSubTypeId, order, triggerId, id)
   def variableAssignmentRows = variableAssignments.zipWithIndex.map{
     case (assignments, variableIndex) => assignments.zipWithIndex.map{
-      case (assignment, arrayIndex) => {
+      case (assignment, arrayIndex) =>
         TriggerVariableAssignment(id, variableIndex, arrayIndex, assignment.objectId, assignment.integerValue, 0)
-  }}}
+  }}
 
   def toJson = JsonTriggerElement(elementSubTypeId, variableAssignments.map(s => SimpleTriggerElementVariableAssignmentList(s)), id)
 }
@@ -47,8 +47,8 @@ object FullAdventure {
 
   //TODO: NOT GREAT.
 
-  def save(a: FullAdventure) = {
-    val adventure = saveAdventure(a)
+  def save(a: FullAdventure, user: UserJson) = {
+    val adventure = saveAdventure(a, user)
 
     adventure.flatMap(adv => {
       val futureWaypoints = saveWaypoints(adv.waypoints, adv.id)
@@ -72,7 +72,7 @@ object FullAdventure {
 
                         val waypointsToDelete = oldWaypoints.map(_.id).toSet diff waypoints.map(_.id).toSet
                         val triggersToDelete = oldTriggers.map(_.id).toSet diff triggersWithElements.map(_.id).toSet
-                        val elementsToDelete = oldTriggerElements.map(_.id).toSet diff triggersWithElements.flatMap(a => (a.event.id +: a.actions.map(_.id))).toSet
+                        val elementsToDelete = oldTriggerElements.map(_.id).toSet diff triggersWithElements.flatMap(a => a.event.id +: a.actions.map(_.id)).toSet
                         val assignmentsToDelete = oldAssignments.map(_.id).toSet diff savedVariables.map(_.id).toSet
                         TriggerVariableAssignment.deleteMany(assignmentsToDelete.toSeq).onSuccess { case a =>
                           TriggerElement.deleteMany(elementsToDelete.toSeq).onSuccess { case a =>
@@ -138,11 +138,11 @@ object FullAdventure {
   }
 
   def elementByRowAndVariableMap(row: TriggerElement, varMap: Map[Int, Seq[Seq[TriggerVariableAssignment]]]) ={
-    FullTriggerElement(row.elementType, row.elementSubTypeId, varMap.get(row.id).getOrElse(Nil).map(_.map(a => SimpleTriggerElementVariableAssignment(a.waypointId, a.integerValue, None))), row.id)
+    FullTriggerElement(row.elementType, row.elementSubTypeId, varMap.getOrElse(row.id, Nil).map(_.map(a => SimpleTriggerElementVariableAssignment(a.waypointId, a.integerValue, None))), row.id)
   }
 
-  def saveAdventure(adventure: FullAdventure) = {
-    val toSave = adventure.dbRow
+  def saveAdventure(adventure: FullAdventure, user: UserJson) = {
+    val toSave = adventure.dbRow(user.id)
     val futureSaved = Adventure.save(toSave)
     futureSaved.map(saved => adventure.copy(id = saved.id))
   }
@@ -182,15 +182,14 @@ object FullAdventure {
     val toSave = orderedTriggers.flatMap(t => {
       (t.event +: t.actions).flatMap(action => {
         action.variableAssignments.zipWithIndex.flatMap{
-          case (assignments, variableIndex) => {
+          case (assignments, variableIndex) =>
             assignments.zipWithIndex.map{
-              case (assignment, arrayIndex) => {
+              case (assignment, arrayIndex) =>
                 val objectId = if(assignment.objectKey.isDefined)
                   assignment.objectKey.map(ok => waypointIdByKey(ok))
                 else
                   assignment.objectId
                 TriggerVariableAssignment(action.id, variableIndex, arrayIndex, objectId, assignment.integerValue, 0)
-              }}
           }}
       })
     })

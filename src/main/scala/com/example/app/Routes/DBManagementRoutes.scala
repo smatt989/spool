@@ -1,5 +1,6 @@
 package com.example.app.Routes
 
+import com.example.app.migrations.{Migration1}
 import com.example.app.{DataImport, SlickRoutes, Tables}
 //import slick.driver.H2Driver.api._
 import slick.driver.PostgresDriver.api._
@@ -28,6 +29,10 @@ trait DBManagementRoutes extends SlickRoutes{
     db.run(DBIO.seq(Tables.dropSchemaAction, Tables.createSchemaAction)).foreach { a =>
       DataImport.populateData(db)
     }
+  }
+
+  get("/db/migration"){
+    new Migration1().run
   }
 
 

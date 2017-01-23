@@ -11,11 +11,12 @@ trait SessionRoutes extends SlickRoutes with AuthenticationSupport{
   }
 
   get("/sessions/new"){
+    contentType = formats("json")
     authenticate()
-    Ok("200")
+    user.toJson
   }
 
-  get("/sessions/logout"){
+  post("/sessions/logout"){
     authenticate()
     val id = user.id
     scentry.logout()

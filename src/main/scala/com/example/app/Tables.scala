@@ -25,23 +25,31 @@ object Tables {
     def user = foreignKey("USER_SESSIONS_TO_USER_FK", userId, users)(_.id)
   }
 
-  class Adventures(tag: Tag) extends Table[(Int, String, Option[String])](tag, "ADVENTURES") with HasIdColumn[Int] {
+  class Adventures(tag: Tag) extends Table[(Int, Int, String, Option[String])](tag, "ADVENTURES") with HasIdColumn[Int] {
     def id = column[Int]("ADVENTURE_ID", O.PrimaryKey, O.AutoInc)
+    def creatorUserId = column[Int]("CREATOR_USER_ID")
     def name = column[String]("NAME")
     def description = column[Option[String]]("DESCRIPTION")
 
-    def * = (id, name, description)
+    def * = (id, creatorUserId, name, description)
+
+    def user = foreignKey("ADVENTURES_TO_USER_FK", creatorUserId, users)(_.id)
   }
 
-  class Waypoints(tag: Tag) extends Table[(Int, Int, Option[String], Double, Double, Int)](tag, "WAYPOINTS") with HasIdColumn[Int] {
+  class Waypoints(tag: Tag) extends Table[(Int, Int, Option[String], Option[String], Boolean, Option[Int], Option[Int], Option[Int], Double, Double, Int)](tag, "WAYPOINTS") with HasIdColumn[Int] {
     def id = column[Int]("WAYPOINT_ID", O.PrimaryKey, O.AutoInc)
     def adventureId = column[Int]("ADVENTURE_ID")
     def name = column[Option[String]]("NAME")
+    def description = column[Option[String]]("DESCRIPTION")
+    def showDirections = column[Boolean]("SHOW_DIRECTIONS")
+    def showBeaconWithinMeterRange = column[Option[Int]]("SHOW_BEACON_WITHIN_METER_RANGE")
+    def showNameWithinMeterRange = column[Option[Int]]("SHOW_NAME_WITHIN_METER_RANGE")
+    def showDescriptionWithinMeterRange = column[Option[Int]]("SHOW_DESCRIPTION_WITHIN_METER_RANGE")
     def latitude = column[Double]("LATITUDE")
     def longitude = column[Double]("LONGITUDE")
     def order = column[Int]("ORDER_VALUE")
 
-    def * = (id, adventureId, name, latitude, longitude, order)
+    def * = (id, adventureId, name, description, showDirections, showBeaconWithinMeterRange, showNameWithinMeterRange, showDescriptionWithinMeterRange, latitude, longitude, order)
 
     def adventure = foreignKey("WAYPOINTS_TO_ADVENTURE_FK", adventureId, adventures)(_.id)
   }

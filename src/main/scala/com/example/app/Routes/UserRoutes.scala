@@ -12,9 +12,7 @@ trait UserRoutes extends SlickRoutes with AuthenticationSupport{
 
     val created = User.createNewUser(user)
 
-    created.map(newUser => {
-        Ok(body = "200")
-    })
+    created.map(_.toJson)
   }
 
   get("/users") {

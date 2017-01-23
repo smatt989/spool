@@ -1,10 +1,10 @@
 package com.example.app.Routes
 
-import com.example.app.SlickRoutes
+import com.example.app.{AuthenticationSupport, SlickRoutes}
 import com.example.app.models._
 import org.json4s.JsonAST.JObject
 
-trait AppRoutes extends SlickRoutes{
+trait AppRoutes extends SlickRoutes with AuthenticationSupport{
 
 
   get("/") {
@@ -39,8 +39,9 @@ trait AppRoutes extends SlickRoutes{
 
   get("/adventures") {
     contentType = formats("json")
-
-    Adventure.getAll
+    Adventure.getAll.flatMap(adventures => {
+      Adventure.serializeMany(adventures)
+    })
   }
 
   post("/adventures/:id/waypoints/save") {
@@ -88,10 +89,10 @@ trait AppRoutes extends SlickRoutes{
 
   post("/adventures/save") {
     contentType = formats("json")
-
+    authenticate()
     val adventure = parsedBody.extract[JsonAdventure].toModel
 
-    val futureAdventureId = FullAdventure.save(adventure)
+    val futureAdventureId = FullAdventure.save(adventure, user.toJson)
 
     futureAdventureId.flatMap(id => FullAdventure.getById(id).map(_.toJson))
   }
