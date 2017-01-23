@@ -77,6 +77,7 @@ trait AppRoutes extends SlickRoutes with AuthenticationSupport{
   get("/specifications/triggers"){
     contentType = formats("json")
 
+    
     val specifications = TriggerElementSpecification.getAll
 
     specifications.map(ss => {
