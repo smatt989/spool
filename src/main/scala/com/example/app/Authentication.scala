@@ -9,7 +9,7 @@ import org.scalatra.ScalatraBase
 import org.scalatra.auth.{ScentryConfig, ScentryStrategy, ScentrySupport}
 
 object SessionTokenStrategy {
-  val HeaderKey = "SPOOL-SESSION-KEY"
+  val HeaderKey = "Spool-Session-Key"
   val Username = "username"
   val Email = "email"
   val Password = "password"
