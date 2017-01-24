@@ -48,7 +48,7 @@ object FullAdventure {
   //TODO: NOT GREAT.
 
   def save(a: FullAdventure, user: UserJson) = {
-    Adventure.authorizedEditor(a.id, user).map(authorized => {
+    Adventure.authorizedEditor(a.id, user).flatMap(authorized => {
       if(authorized) {
         val adventure = saveAdventure(a, user)
 
