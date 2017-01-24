@@ -62,7 +62,7 @@ object Adventure extends Updatable[Adventure, (Int, Int, String, Option[String])
   }
 
   def userSave(adv: Adventure, user: UserJson) = {
-    authorizedEditor(adv.id, user).map(authorized => {
+    authorizedEditor(adv.id, user).flatMap(authorized => {
       if(authorized){
         save(adv)
       } else {
