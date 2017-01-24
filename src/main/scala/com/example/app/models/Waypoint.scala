@@ -48,8 +48,8 @@ object Waypoint extends Updatable[Waypoint, (Int, Int, Option[String], Option[St
     db.run(table.filter(_.adventureId === adventureId).result).map(_.map(reify).sortBy(_.order))
 
   def updateQuery(a: Waypoint) = table.filter(_.id === a.id)
-    .map(x => (x.latitude, x.longitude, x.order, x.name))
-    .update((a.latitude, a.longitude, a.order, a.name))
+    .map(x => (x.latitude, x.longitude, x.order, x.name, x.description, x.showDirections, x.showBeaconWithinMeterRange, x.showNameWithinMeterRange, x.showDescriptionWithinMeterRange))
+    .update((a.latitude, a.longitude, a.order, a.name, a.description, a.showDirections, a.showBeaconWithinMeterRange, a.showNameWithinMeterRange, a.showDescriptionWithinMeterRange))
 
   def deleteByAdventureIdQuery(adventureId: Int) =
     table.filter(_.adventureId === adventureId).delete

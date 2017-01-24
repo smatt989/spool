@@ -2,6 +2,7 @@ package com.example.app.models
 
 import com.example.app.{AppGlobals, HasIntId, Tables, Updatable}
 
+import scala.concurrent.Future
 import scala.io.Source
 //import slick.driver.H2Driver.api._
 import slick.driver.PostgresDriver.api._
@@ -42,6 +43,31 @@ object Adventure extends Updatable[Adventure, (Int, Int, String, Option[String])
       println("URL: "+url)
       val directions = Source.fromURL(url).mkString
       JSON.parseFull(directions)
+    })
+  }
+
+  def authorizedEditor(adventureId: Int, user: UserJson) = {
+    if(adventureId != 0){
+      Future.apply(true)
+    } else {
+      val oldAdv = Adventure.byId(adventureId)
+      oldAdv.map(adv => {
+        if (adv.creatorUserId == user.id) {
+          true
+        } else {
+          false
+        }
+      })
+    }
+  }
+
+  def userSave(adv: Adventure, user: UserJson) = {
+    authorizedEditor(adv.id, user).map(authorized => {
+      if(authorized){
+        save(adv)
+      } else {
+        throw new IllegalAccessException("Only creator can edit Adventure")
+      }
     })
   }
 

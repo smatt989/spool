@@ -1,6 +1,7 @@
 package com.example.app.models
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 case class FullAdventure(id: Int = 0,
                          name: String = Adventure.randomizeName,
@@ -44,52 +45,57 @@ case class JsonTriggerElement(itemSubTypeId: Int, varAssignments: Seq[SimpleTrig
 }
 
 object FullAdventure {
-
   //TODO: NOT GREAT.
 
   def save(a: FullAdventure, user: UserJson) = {
-    val adventure = saveAdventure(a, user)
+    Adventure.authorizedEditor(a.id, user).map(authorized => {
+      if(authorized) {
+        val adventure = saveAdventure(a, user)
 
-    adventure.flatMap(adv => {
-      val futureWaypoints = saveWaypoints(adv.waypoints, adv.id)
-      val futureWaypointIdByKey = futureWaypoints.map(waypoints => waypoints.zipWithIndex.map{case (waypoint, index) => adv.waypoints(index).key -> waypoint.id}.filter(_._1.isDefined).map(a => a._1.get -> a._2).toMap)
-      val futureTriggers = saveTriggers(adv.triggers, adv.id)
-      futureWaypointIdByKey.flatMap(waypointIdByKey => {
-        futureTriggers.flatMap(triggers => {
-          val futureTriggersWithElements = saveElements(triggers)
-          val futureSavedVariables = futureTriggersWithElements.flatMap(ts => saveVariableAssignments(ts, waypointIdByKey))
-          val allOldWaypoints = Waypoint.byAdventureId(adv.id)
-          val allOldTriggers = Trigger.byAdventureId(adv.id)
-          val allOldTriggerElements = allOldTriggers.flatMap(aot => TriggerElement.byTriggerIds(aot.map(_.id)))
-          val allOldAssignments = allOldTriggerElements.flatMap(aote => TriggerVariableAssignment.byTriggerElementIds(aote.map(_.id)))
-          futureWaypoints.flatMap(waypoints => {
-            futureTriggersWithElements.flatMap(triggersWithElements => {
-              futureSavedVariables.flatMap(savedVariables => {
-                allOldWaypoints.flatMap(oldWaypoints => {
-                  allOldTriggers.flatMap(oldTriggers => {
-                    allOldTriggerElements.flatMap(oldTriggerElements => {
-                      allOldAssignments.map(oldAssignments => {
+        adventure.flatMap(adv => {
+          val futureWaypoints = saveWaypoints(adv.waypoints, adv.id)
+          val futureWaypointIdByKey = futureWaypoints.map(waypoints => waypoints.zipWithIndex.map { case (waypoint, index) => adv.waypoints(index).key -> waypoint.id }.filter(_._1.isDefined).map(a => a._1.get -> a._2).toMap)
+          val futureTriggers = saveTriggers(adv.triggers, adv.id)
+          futureWaypointIdByKey.flatMap(waypointIdByKey => {
+            futureTriggers.flatMap(triggers => {
+              val futureTriggersWithElements = saveElements(triggers)
+              val futureSavedVariables = futureTriggersWithElements.flatMap(ts => saveVariableAssignments(ts, waypointIdByKey))
+              val allOldWaypoints = Waypoint.byAdventureId(adv.id)
+              val allOldTriggers = Trigger.byAdventureId(adv.id)
+              val allOldTriggerElements = allOldTriggers.flatMap(aot => TriggerElement.byTriggerIds(aot.map(_.id)))
+              val allOldAssignments = allOldTriggerElements.flatMap(aote => TriggerVariableAssignment.byTriggerElementIds(aote.map(_.id)))
+              futureWaypoints.flatMap(waypoints => {
+                futureTriggersWithElements.flatMap(triggersWithElements => {
+                  futureSavedVariables.flatMap(savedVariables => {
+                    allOldWaypoints.flatMap(oldWaypoints => {
+                      allOldTriggers.flatMap(oldTriggers => {
+                        allOldTriggerElements.flatMap(oldTriggerElements => {
+                          allOldAssignments.map(oldAssignments => {
 
-                        val waypointsToDelete = oldWaypoints.map(_.id).toSet diff waypoints.map(_.id).toSet
-                        val triggersToDelete = oldTriggers.map(_.id).toSet diff triggersWithElements.map(_.id).toSet
-                        val elementsToDelete = oldTriggerElements.map(_.id).toSet diff triggersWithElements.flatMap(a => a.event.id +: a.actions.map(_.id)).toSet
-                        val assignmentsToDelete = oldAssignments.map(_.id).toSet diff savedVariables.map(_.id).toSet
-                        TriggerVariableAssignment.deleteMany(assignmentsToDelete.toSeq).onSuccess { case a =>
-                          TriggerElement.deleteMany(elementsToDelete.toSeq).onSuccess { case a =>
-                            Trigger.deleteMany(triggersToDelete.toSeq).onSuccess { case a =>
-                              Waypoint.deleteMany(waypointsToDelete.toSeq)
+                            val waypointsToDelete = oldWaypoints.map(_.id).toSet diff waypoints.map(_.id).toSet
+                            val triggersToDelete = oldTriggers.map(_.id).toSet diff triggersWithElements.map(_.id).toSet
+                            val elementsToDelete = oldTriggerElements.map(_.id).toSet diff triggersWithElements.flatMap(a => a.event.id +: a.actions.map(_.id)).toSet
+                            val assignmentsToDelete = oldAssignments.map(_.id).toSet diff savedVariables.map(_.id).toSet
+                            TriggerVariableAssignment.deleteMany(assignmentsToDelete.toSeq).onSuccess { case a =>
+                              TriggerElement.deleteMany(elementsToDelete.toSeq).onSuccess { case a =>
+                                Trigger.deleteMany(triggersToDelete.toSeq).onSuccess { case a =>
+                                  Waypoint.deleteMany(waypointsToDelete.toSeq)
+                                }
+                              }
                             }
-                          }
-                        }
+                          })
+                        })
                       })
                     })
                   })
                 })
               })
             })
-          })
+          }).map(a => adv.id)
         })
-      }).map(a => adv.id)
+      } else {
+        throw new IllegalAccessException("Only creator can edit Adventure")
+      }
     })
   }
 
@@ -143,7 +149,7 @@ object FullAdventure {
 
   def saveAdventure(adventure: FullAdventure, user: UserJson) = {
     val toSave = adventure.dbRow(user.id)
-    val futureSaved = Adventure.save(toSave)
+    val futureSaved = Adventure.userSave(toSave, user)
     futureSaved.map(saved => adventure.copy(id = saved.id))
   }
 
