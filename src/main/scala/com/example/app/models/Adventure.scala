@@ -47,7 +47,7 @@ object Adventure extends Updatable[Adventure, (Int, Int, String, Option[String])
   }
 
   def authorizedEditor(adventureId: Int, user: UserJson) = {
-    if(adventureId != 0){
+    if(adventureId == 0){
       Future.apply(true)
     } else {
       val oldAdv = Adventure.byId(adventureId)
