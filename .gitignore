@@ -65,5 +65,8 @@ jrebel.lic
 .*.sw?
 .idea
 
+#javascript
+node_modules
+
 # paulp script
 /.lib/
