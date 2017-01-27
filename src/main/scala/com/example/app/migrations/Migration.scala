@@ -25,6 +25,15 @@ class Migration1 extends Migration {
   }
 }
 
+class Migration2 extends Migration {
+
+  val newSchemas = (Tables.userConnections.schema ++ Tables.adventureShares.schema)
+
+  def run: Unit = {
+    AppGlobals.db().run(DBIO.seq(newSchemas.create))
+  }
+}
+
 class TestMigration extends Migration {
 
   def run: Unit = {

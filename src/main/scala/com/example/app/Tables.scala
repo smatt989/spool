@@ -114,6 +114,31 @@ object Tables {
     def waypoint = foreignKey("TRIGGER_VARIABLE_ASSIGNMENTS_TO_WAYPOINTS", waypointId, waypoints)(_.id)
   }
 
+  class UserConnections(tag: Tag) extends Table[(Int, Int, Int)](tag, "USER_CONNECTIONS") with HasIdColumn[Int] {
+    def id = column[Int]("USER_CONNECTION_ID", O.PrimaryKey, O.AutoInc)
+    def senderUserId = column[Int]("SENDER_USER_ID")
+    def receiverUserId = column[Int]("RECEIVER_USER_ID")
+
+    def * = (id, senderUserId, receiverUserId)
+
+    def sender = foreignKey("USER_CONNECTIONS_SENDER_TO_USERS_FK", senderUserId, users)(_.id)
+    def receiver = foreignKey("USER_CONNECTIONS_RECEIVER_TO_USERS_FK", receiverUserId, users)(_.id)
+  }
+
+  class AdventureShares(tag: Tag) extends Table[(Int, Int, Int, Int, Option[String])](tag, "ADVENTURE_SHARES") with HasIdColumn[Int] {
+    def id = column[Int]("ADVENTURE_SHARE_ID", O.PrimaryKey, O.AutoInc)
+    def senderUserId = column[Int]("SENDER_USER_ID")
+    def receiverUserId = column[Int]("RECEIVER_USER_ID")
+    def adventureId = column[Int]("ADVENTURE_ID")
+    def note = column[Option[String]]("NOTE")
+
+    def * = (id, senderUserId, receiverUserId, adventureId, note)
+
+    def sender = foreignKey("ADVENTURE_SHARES_SENDER_TO_USERS_FK", senderUserId, users)(_.id)
+    def receiver = foreignKey("ADVENTURE_SHARES_RECEIVER_TO_USERS_FK", receiverUserId, users)(_.id)
+    def adventure = foreignKey("ADVENTURE_SHARE_TO_ADVENTURES_FK", adventureId, adventures)(_.id)
+  }
+
   val users = TableQuery[Users]
   val userSessions = TableQuery[UserSessions]
 
@@ -125,12 +150,17 @@ object Tables {
   val triggerElements = TableQuery[TriggerElements]
   val triggerVariableAssignments = TableQuery[TriggerVariableAssignments]
 
+  val userConnections = TableQuery[UserConnections]
+  val adventureShares = TableQuery[AdventureShares]
+
   val oldSchemas = (userSessions.schema ++ users.schema)
 
 
   val schemas = (users.schema ++ userSessions.schema ++ adventures.schema ++ waypoints.schema ++ triggerElementSubTypes.schema ++
     triggerElementVariables.schema ++ triggers.schema ++ triggerElements.schema ++
-    triggerVariableAssignments.schema)
+    triggerVariableAssignments.schema ++ userConnections.schema ++ adventureShares.schema)
+
+  val newSchemas = (userConnections.schema ++ adventureShares.schema)
 
 
   // DBIO Action which creates the schema

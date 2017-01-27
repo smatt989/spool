@@ -40,6 +40,9 @@ object User extends Updatable[User, (Int, String, String, String), Tables.Users]
   def reify(tuple: (Int, String, String, String)) =
     User(tuple._2, tuple._3, tuple._4, tuple._1)
 
+  def reifyJson(tuple: (Int, String, String, String)) =
+    reify(tuple).toJson
+
   def classToTuple(a: User) =
     (a.id, a.username, a.email, a.hashedPassword)
 
@@ -55,6 +58,11 @@ object User extends Updatable[User, (Int, String, String, String), Tables.Users]
 
   def authenticate(user: User, password: String) = {
     checkPassword(password, user.hashedPassword)
+  }
+
+  def searchUserName(query: String) = {
+    val queryString = "%"+query+"%"
+    db.run(table.filter(_.username like queryString).result).map(_.map(reifyJson))
   }
 
   private[this] def unauthenticatedUserFromUserLogin(userLogin: UserLogin) = {

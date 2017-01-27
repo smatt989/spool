@@ -1,6 +1,6 @@
 package com.example.app.Routes
 
-import com.example.app.migrations.{Migration1}
+import com.example.app.migrations.{Migration1, Migration2}
 import com.example.app.{DataImport, SlickRoutes, Tables}
 //import slick.driver.H2Driver.api._
 import slick.driver.PostgresDriver.api._
@@ -32,7 +32,7 @@ trait DBManagementRoutes extends SlickRoutes{
   }
 
   get("/db/migration"){
-    new Migration1().run
+    new Migration2().run
   }
 
 
