@@ -44,6 +44,12 @@ trait AppRoutes extends SlickRoutes with AuthenticationSupport{
     })
   }
 
+  get("/users/adventures") {
+    contentType = formats("json")
+    authenticate()
+    AdventureHeadline.getAllAdventures(user.id)
+  }
+
   post("/adventures/:id/waypoints/save") {
     contentType = formats("json")
 

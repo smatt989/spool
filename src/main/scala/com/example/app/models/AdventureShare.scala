@@ -33,17 +33,22 @@ object AdventureShare extends SlickDbObject[AdventureShare, (Int, Int, Int, Int,
     (a.id, a.senderUserId, a.receiverUserId, a.adventureId, a.note)
 
   def safeSave(share: AdventureShare) = {
-    findShare(share).flatMap(optionalShare => {
-      if (optionalShare.isEmpty) {
-        create(share)
-      } else {
-        Future.apply(optionalShare.get)
-      }
+    safeSaveManyForOneSender(Seq(share), share.senderUserId)
+  }
+
+  def safeSaveManyForOneSender(shares: Seq[AdventureShare], senderId: Int) = {
+    adventureSharedBySenderIdRows(senderId).flatMap(alreadySaved => {
+      createMany(shares).flatMap(newlySaved => {
+          val alreadySavedByTriple = alreadySaved.map(a => (a.senderUserId, a.receiverUserId, a.adventureId) -> a).toMap
+          val toDelete = newlySaved.flatMap(a => alreadySavedByTriple.get(a.senderUserId, a.receiverUserId, a.adventureId))
+          deleteMany(toDelete.map(_.id)).map(_ => newlySaved)
+      })
     })
   }
 
-  def findShare(share: AdventureShare) =
-    db.run(table.filter(a => a.senderUserId === share.senderUserId && a.receiverUserId === share.receiverUserId && a.adventureId === share.adventureId).result).map(_.map(reify).headOption)
+  def adventureSharedBySenderIdRows(senderUserId: Int) = {
+    db.run(table.filter(_.senderUserId === senderUserId).result).map(_.map(reify))
+  }
 
   def adventuresSharedBySenderId(senderUserId: Int) = {
     db.run(

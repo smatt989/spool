@@ -9,6 +9,7 @@ class SlickApp() extends ScalatraServlet with FutureSupport
   with SessionRoutes
   with AppRoutes
   with DBManagementRoutes
+  with AdventureProgressRoutes
   with AdventureShareRoutes {
 
   def db = AppGlobals.db()

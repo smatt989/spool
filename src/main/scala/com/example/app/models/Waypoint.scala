@@ -60,6 +60,10 @@ object Waypoint extends Updatable[Waypoint, (Int, Int, Option[String], Option[St
   def saveAdventureWaypoints(adventureId: Int, waypoints: Seq[Waypoint]) =
     db.run(DBIO.seq(deleteByAdventureIdQuery(adventureId), createQuery(waypoints)).transactionally)
 
+  def getFirstWaypointByAdventureIds(adventureIds: Seq[Int]) = {
+    db.run(table.filter(_.adventureId inSet adventureIds).result).map(_.map(reify).groupBy(_.adventureId).mapValues(_.head))
+  }
+
 }
 
 case class LatLng(lat: Double, lng: Double)

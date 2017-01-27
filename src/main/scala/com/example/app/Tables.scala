@@ -1,7 +1,10 @@
 package com.example.app
 
 //import slick.driver.H2Driver.api._
+import java.sql.Timestamp
+
 import slick.driver.PostgresDriver.api._
+import slick.profile.SqlProfile.ColumnOption.SqlType
 
 
 object Tables {
@@ -139,6 +142,20 @@ object Tables {
     def adventure = foreignKey("ADVENTURE_SHARE_TO_ADVENTURES_FK", adventureId, adventures)(_.id)
   }
 
+  class AdventureProgress(tag: Tag) extends Table[(Int, Int, Int, Int, Boolean, Timestamp)](tag, "ADVENTURE_PROGRESS") with HasIdColumn[Int] {
+    def id = column[Int]("ADVENTURE_PROGRESS_ID", O.PrimaryKey, O.AutoInc)
+    def userId = column[Int]("USER_ID")
+    def adventureId = column[Int]("ADVENTURE_ID")
+    def step = column[Int]("STEP")
+    def finished = column[Boolean]("FINISHED")
+    def lastUpdated = column[Timestamp]("LAST_UPDATED")
+
+    def * = (id, userId, adventureId, step, finished, lastUpdated)
+
+    def user = foreignKey("ADVENTURE_PROGRESS_TO_USERS_FK", userId, users)(_.id)
+    def adventure = foreignKey("ADVENTURE_PROGRESS_TO_ADVENTURES_FK", adventureId, adventures)(_.id)
+  }
+
   val users = TableQuery[Users]
   val userSessions = TableQuery[UserSessions]
 
@@ -153,14 +170,12 @@ object Tables {
   val userConnections = TableQuery[UserConnections]
   val adventureShares = TableQuery[AdventureShares]
 
-  val oldSchemas = (userSessions.schema ++ users.schema)
+  val adventureProgress = TableQuery[AdventureProgress]
 
 
   val schemas = (users.schema ++ userSessions.schema ++ adventures.schema ++ waypoints.schema ++ triggerElementSubTypes.schema ++
     triggerElementVariables.schema ++ triggers.schema ++ triggerElements.schema ++
-    triggerVariableAssignments.schema ++ userConnections.schema ++ adventureShares.schema)
-
-  val newSchemas = (userConnections.schema ++ adventureShares.schema)
+    triggerVariableAssignments.schema ++ userConnections.schema ++ adventureShares.schema ++ adventureProgress.schema)
 
 
   // DBIO Action which creates the schema
@@ -168,8 +183,6 @@ object Tables {
 
   // DBIO Action which drops the schema
   val dropSchemaAction = schemas.drop
-
-  val dropOldSchemaAction = oldSchemas.drop
 
 }
 
