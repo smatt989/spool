@@ -43,7 +43,7 @@ object AdventureHeadline {
           finished = progress.get(adventure.id).map(_.finished).getOrElse(false),
           lastUpdate = progress.get(adventure.id).map(_.updatedAt.getMillis),
           startCoordinate = LatLng(marker.latitude, marker.longitude),
-          sharers = sharesByAdventureId.get(adventure.id).map(shares => shares.map(_.sender)).getOrElse(Nil)
+          sharers = sharesByAdventureId.get(adventure.id).map(shares => shares.map(_.sender).distinct).getOrElse(Nil)
         )
       })
     }}
