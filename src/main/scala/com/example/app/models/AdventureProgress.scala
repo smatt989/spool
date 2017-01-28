@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
   * Created by matt on 1/27/17.
   */
-case class AdventureProgress(id: Int = 0, userId: Int, adventureId: Int, step: Int, finished: Boolean, updatedAt: DateTime = DateTime.now()) extends HasIntId[AdventureProgress]{
+case class AdventureProgress(id: Int = 0, userId: Int, adventureId: Int, step: Int, finished: Boolean, updatedAt: Long = DateTime.now().getMillis) extends HasIntId[AdventureProgress]{
 
   def updateId(id: Int) =
     this.copy(id = id)
@@ -32,10 +32,10 @@ object AdventureProgress extends SlickDbObject[AdventureProgress, (Int, Int, Int
   lazy val table = Tables.adventureProgress
 
   def reify(tuple: (Int, Int, Int, Int, Boolean, Timestamp)) =
-    AdventureProgress(tuple._1, tuple._2, tuple._3, tuple._4, tuple._5, new DateTime(tuple._6.getTime))
+    AdventureProgress(tuple._1, tuple._2, tuple._3, tuple._4, tuple._5, tuple._6.getTime)
 
   def classToTuple(a: AdventureProgress) =
-    (a.id, a.userId, a.adventureId, a.step, a.finished, new Timestamp(a.updatedAt.getMillis))
+    (a.id, a.userId, a.adventureId, a.step, a.finished, new Timestamp(a.updatedAt))
 
   def getAllLatestProgressesFor(userId: Int) =
     getAllProgressesFor(userId).map(_.mapValues(_.last))
@@ -44,10 +44,10 @@ object AdventureProgress extends SlickDbObject[AdventureProgress, (Int, Int, Int
     getProgresses(request).map(_.lastOption)
 
   def getAllProgressesFor(userId: Int) =
-    db.run(table.filter(_.userId === userId).result).map(_.map(reify).groupBy(_.adventureId).mapValues(_.sortBy(_.updatedAt.getMillis)))
+    db.run(table.filter(_.userId === userId).result).map(_.map(reify).groupBy(_.adventureId).mapValues(_.sortBy(_.updatedAt)))
 
   def getProgresses(request: ProgressRequest) = {
     db.run(table.filter(a => a.adventureId === request.adventureId && a.userId === request.userId).result)
-        .map(_.map(reify).sortBy(_.updatedAt.getMillis))
+        .map(_.map(reify).sortBy(_.updatedAt))
   }
 }
