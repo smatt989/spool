@@ -12,16 +12,6 @@ trait AdventureShareRoutes extends SlickRoutes with AuthenticationSupport{
     contentType = formats("json")
     authenticate()
 
-    val shareRequest = parsedBody.extract[ShareAdventureJsonRequest]
-    val adventureShare = shareRequest.newAdventureShare(user.id)
-
-    AdventureShare.safeSave(adventureShare)
-  }
-
-  post("/adventures/share/many") {
-    contentType = formats("json")
-    authenticate()
-
     val shareRequests = parsedBody.extract[Seq[ShareAdventureJsonRequest]]
     val adventureShares = shareRequests.map(_.newAdventureShare(user.id))
     AdventureShare.safeSaveManyForOneSender(adventureShares, user.id)
