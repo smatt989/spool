@@ -61,8 +61,8 @@ object User extends Updatable[User, (Int, String, String, String), Tables.Users]
   }
 
   def searchUserName(query: String) = {
-    val queryString = "%"+query+"%"
-    db.run(table.filter(_.username like queryString).result).map(_.map(reifyJson))
+    val queryString = "%"+query.toLowerCase()+"%"
+    db.run(table.filter(_.username.toLowerCase like queryString).result).map(_.map(reifyJson))
   }
 
   private[this] def unauthenticatedUserFromUserLogin(userLogin: UserLogin) = {
