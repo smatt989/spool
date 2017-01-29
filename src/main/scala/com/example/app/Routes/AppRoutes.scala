@@ -50,6 +50,15 @@ trait AppRoutes extends SlickRoutes with AuthenticationSupport{
     AdventureHeadline.getAllAdventures(user.id)
   }
 
+  get("/users/adventures/:id") {
+    contentType = formats("json")
+    authenticate()
+
+    val adventureId = {params("id")}.toInt
+
+    AdventureHeadline.getOneAdventure(user.id, adventureId)
+  }
+
   post("/adventures/:id/waypoints/save") {
     contentType = formats("json")
 

@@ -82,4 +82,21 @@ object AdventureShare extends SlickDbObject[AdventureShare, (Int, Int, Int, Int,
         adventure = Adventure.reify(a._1).toJson(User.reifyJson(a._2)),
         note = a._5._5)
     }))
+
+  def adventuresSharedByReceiverIdAndAdventureId(receiverUserId: Int, adventureId: Int) = {
+    db.run(
+      (for {
+        shares <- table.filter(a => a.receiverUserId === receiverUserId && a.adventureId === adventureId)
+        adventures <- Adventure.table if adventures.id === shares.adventureId
+        creators <- User.table if creators.id === adventures.creatorUserId
+        receivers <- User.table if receivers.id === shares.receiverUserId
+        senders <- User.table if senders.id === shares.senderUserId
+      } yield (adventures, creators, receivers, senders, shares)).result).map(_.map(a => {
+      AdventureShareJson(
+        sender = User.reifyJson(a._4),
+        receiver = User.reifyJson(a._3),
+        adventure = Adventure.reify(a._1).toJson(User.reifyJson(a._2)),
+        note = a._5._5)
+    }))
+  }
 }
