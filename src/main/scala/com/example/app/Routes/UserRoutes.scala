@@ -16,6 +16,7 @@ trait UserRoutes extends SlickRoutes with AuthenticationSupport{
   }
 
   post("/users/search") {
+    contentType = formats("json")
     val query = {params("query")}
 
     User.searchUserName(query)
