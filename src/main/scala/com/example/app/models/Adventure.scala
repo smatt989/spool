@@ -46,6 +46,24 @@ object Adventure extends Updatable[Adventure, (Int, Int, String, Option[String])
     })
   }
 
+  def adventuresBy(userId: Int) =
+    db.run(
+      table.filter(_.creatorUserId === userId).result.map(_.map(reify))
+    )
+
+  def adventuresNear(location: LatLng) =
+    db.run(
+      Waypoint.table.filter(a => {
+        (
+          a.latitude > location.lat - 1 &&
+            a.latitude < location.lat + 1
+          ) && (
+          a.longitude > location.lng - 1 &&
+            a.longitude < location.lng + 1
+          )
+      }).result.map(_.map(Waypoint.reify))
+    )
+
   def authorizedEditor(adventureId: Int, user: UserJson) = {
     if(adventureId == 0){
       Future.apply(true)

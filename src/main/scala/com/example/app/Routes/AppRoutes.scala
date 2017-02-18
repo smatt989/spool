@@ -44,10 +44,13 @@ trait AppRoutes extends SlickRoutes with AuthenticationSupport{
     })
   }
 
-  get("/users/adventures") {
+  post("/users/adventures") {
     contentType = formats("json")
     authenticate()
-    AdventureHeadline.getAllAdventures(user.id)
+
+    val location = parsedBody.extract[LatLng]
+
+    AdventureHeadline.getAllAdventures(user.id, location)
   }
 
   get("/users/adventures/:id") {

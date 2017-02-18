@@ -1,6 +1,7 @@
 package com.example.app.models
 
 import com.example.app.{AppGlobals, Tables}
+import org.joda.time.DateTime
 import slick.driver.PostgresDriver.api._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -22,13 +23,28 @@ case class AdventureHeadline(
 
 object AdventureHeadline {
 
-  def getAllAdventures(userId: Int) = {
+/*  def getUserLocationAdventures(userId: Int, location: LatLng) = {
+    ( for {
+      nearbyWaypoints <- Adventure.adventuresNear(location)
+      myAdventures <- Adventure.adventuresBy(userId)
+      progress <- AdventureProgress.getAllLatestProgressesFor(userId)
+      shares <- AdventureShare.adventuresSharedByReceiverId(userId)
+      advs <- Adventure.byIds((nearbyWaypoints.map(_.adventureId) ++ progress.keys.toSeq ++ shares.map(_.adventure.id)).toSet.toSeq)
+      creators <- User.byIds(advs.map(_.creatorUserId) :+ userId)
+    } yield (advs ++ myAdventures, shares, progress, nearbyWaypoints.groupBy(_.adventureId).mapValues(_.), creators.map(_.toJson))).map { case (adventures, shares, progress, markers, creators) => {
+      reifyAdventureHeaders(adventures, shares, progress, markers, creators)
+    }}
+  }*/
+
+  def getAllAdventures(userId: Int, location: LatLng) = {
     (for {
-      adventures <- Adventure.getAll
+      nearbyAdventures <- Adventure.adventuresNear(location)
+      myAdventures <- Adventure.adventuresBy(userId)
       shares <- AdventureShare.adventuresSharedByReceiverId(userId)
       progress <- AdventureProgress.getAllLatestProgressesFor(userId)
+      adventures <- Adventure.byIds((nearbyAdventures.map(_.adventureId) ++ shares.map(_.adventure.id) ++ progress.keys.toSeq ++ myAdventures.map(_.id)).distinct)
       markers <- Waypoint.getFirstWaypointByAdventureIds(adventures.map(_.id))
-      creators <- User.byIds(adventures.map(_.creatorUserId))
+      creators <- User.byIds(adventures.map(_.creatorUserId).distinct)
     } yield (adventures, shares, progress, markers, creators.map(_.toJson))).map { case (adventures, shares, progress, markers, creators) => {
       reifyAdventureHeaders(adventures, shares, progress, markers, creators)
     }}
@@ -52,9 +68,10 @@ object AdventureHeadline {
          progress: Map[Int, AdventureProgress],
          markers: Map[Int, Waypoint],
          creators: Seq[UserJson]) = {
+    val now = new DateTime().getMillis
     val creatorsById = creators.map(c => c.id -> c).toMap
     val sharesByAdventureId = shares.groupBy(_.adventure.id)
-    adventures.map(adventure => {
+    val as = adventures.map(adventure => {
       val marker = markers(adventure.id)
       AdventureHeadline(
         adventure.id,
@@ -68,5 +85,7 @@ object AdventureHeadline {
         sharers = sharesByAdventureId.get(adventure.id).map(shares => shares.map(_.sender).distinct).getOrElse(Nil)
       )
     })
+    println("finished reify: "+(new DateTime().getMillis - now))
+    as
   }
 }
