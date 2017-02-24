@@ -9,13 +9,14 @@ import com.relayrides.pushy.apns.util.{ApnsPayloadBuilder, SimpleApnsPushNotific
 object PushNotificationManager {
 
   val apnsClient = new ApnsClientBuilder().build()
+  val topic = "com.spool.app"
   val teamId = System.getenv("SPOOL_TEAM_ID")
   val keyId = System.getenv("APNS_KEY_ID")
 
   val file = new File("src/main/resources/APNsAuthKey_VLPZR3288Q.p8")
 
   apnsClient.registerSigningKey(new File("src/main/resources/APNsAuthKey_VLPZR3288Q.p8"),
-    teamId, keyId, "Spool")
+    teamId, keyId, topic)
 
   def makePushNotification(message: String, deviceToken: String) = {
     val connection = apnsClient.connect(ApnsClient.DEVELOPMENT_APNS_HOST)
@@ -28,7 +29,7 @@ object PushNotificationManager {
 
     val token = TokenUtil.sanitizeTokenString(deviceToken)
 
-    val pushNotification = new SimpleApnsPushNotification(token, "Spool", payload)
+    val pushNotification = new SimpleApnsPushNotification(token, topic, payload)
 
     val sendNotificationFuture = apnsClient.sendNotification(pushNotification)
 
