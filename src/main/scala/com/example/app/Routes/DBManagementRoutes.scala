@@ -28,7 +28,7 @@ trait DBManagementRoutes extends SlickRoutes{
   }
 
   get("/db/migration"){
-    new Migration3().run
+    new Migration4().run
   }
 
 

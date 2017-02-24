@@ -1,10 +1,11 @@
 package com.example.app.models
 
-import com.example.app.{HasIntId, SlickDbObject, Tables}
+import com.example.app.{HasIntId, PushNotificationManager, SlickDbObject, Tables}
 import slick.driver.PostgresDriver.api._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 /**
   * Created by matt on 1/26/17.
@@ -39,9 +40,19 @@ object AdventureShare extends SlickDbObject[AdventureShare, (Int, Int, Int, Int,
   def safeSaveManyForOneSender(shares: Seq[AdventureShare], senderId: Int) = {
     adventureSharedBySenderIdRows(senderId).flatMap(alreadySaved => {
       createMany(shares).flatMap(newlySaved => {
+          val recipientDeviceIds = DeviceToken.getByUserIds(newlySaved.map(_.receiverUserId))
+          val senders = Await.result(User.byIds(newlySaved.map(_.senderUserId)), Duration.Inf).map(a => a.id -> a.username).toMap
+          newlySaved.foreach(saved => {
+            val sendername = senders(saved.senderUserId)
+            val receiverDeviceToken = recipientDeviceIds(saved.receiverUserId)
+            if(receiverDeviceToken.isDefined)
+              PushNotificationManager.makePushNotification(sendername+" has shared an adventure with you", receiverDeviceToken.get)
+          })
+
           val alreadySavedByTriple = alreadySaved.map(a => (a.senderUserId, a.receiverUserId, a.adventureId) -> a).toMap
           val toDelete = newlySaved.flatMap(a => alreadySavedByTriple.get(a.senderUserId, a.receiverUserId, a.adventureId))
           deleteMany(toDelete.map(_.id)).map(_ => newlySaved)
+
       })
     })
   }

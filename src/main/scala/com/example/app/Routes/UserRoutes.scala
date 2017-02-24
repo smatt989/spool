@@ -65,4 +65,14 @@ trait UserRoutes extends SlickRoutes with AuthenticationSupport{
     User.getAll.map(_.map(_.toJson))
   }
 
+  post("/users/tokens"){
+    contentType = formats("json")
+    authenticate()
+
+    val rawToken = {params("device_token")}
+
+    val deviceToken = DeviceToken(userId = user.id, deviceToken = Some(rawToken))
+    DeviceToken.save(deviceToken)
+  }
+
 }

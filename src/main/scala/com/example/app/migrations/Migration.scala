@@ -1,6 +1,6 @@
 package com.example.app.migrations
 
-import com.example.app.models.Adventure
+import com.example.app.models.{Adventure, User}
 import com.example.app.{AppGlobals, Tables}
 import slick.driver.PostgresDriver.api._
 
@@ -36,6 +36,14 @@ class Migration2 extends Migration {
 
 class Migration3 extends Migration {
   val newSchemas = (Tables.adventureProgress.schema)
+
+  def run: Unit = {
+    AppGlobals.db().run(DBIO.seq(newSchemas.create))
+  }
+}
+
+class Migration4 extends Migration {
+  val newSchemas = (Tables.deviceTokens.schema)
 
   def run: Unit = {
     AppGlobals.db().run(DBIO.seq(newSchemas.create))

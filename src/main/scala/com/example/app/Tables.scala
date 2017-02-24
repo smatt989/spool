@@ -18,6 +18,16 @@ object Tables {
     def * = (id, username, email, hashedPassword)
   }
 
+  class DeviceTokens(tag: Tag) extends Table[(Int, Int, Option[String])](tag, "DEVICE_TOKENS") with HasIdColumn[Int] {
+    def id = column[Int]("DEVICE_TOKEN_ID", O.PrimaryKey, O.AutoInc)
+    def userId = column[Int]("USER_ID")
+    def deviceToken = column[Option[String]]("DEVICE_TOKEN")
+
+    def * = (id, userId, deviceToken)
+
+    def user = foreignKey("DEVICE_TOKENS_TO_USER_FK", userId, users)(_.id)
+  }
+
   class UserSessions(tag: Tag) extends Table[(Int, Int, String)](tag, "USER_SESSIONS") with HasIdColumn[Int] {
     def id = column[Int]("USER_SESSION_ID", O.PrimaryKey, O.AutoInc)
     def userId = column[Int]("USER_ID")
@@ -157,6 +167,7 @@ object Tables {
   }
 
   val users = TableQuery[Users]
+  val deviceTokens = TableQuery[DeviceTokens]
   val userSessions = TableQuery[UserSessions]
 
   val adventures = TableQuery[Adventures]
@@ -173,7 +184,7 @@ object Tables {
   val adventureProgress = TableQuery[AdventureProgress]
 
 
-  val schemas = (users.schema ++ userSessions.schema ++ adventures.schema ++ waypoints.schema ++ triggerElementSubTypes.schema ++
+  val schemas = (users.schema ++ userSessions.schema ++ deviceTokens.schema ++ adventures.schema ++ waypoints.schema ++ triggerElementSubTypes.schema ++
     triggerElementVariables.schema ++ triggers.schema ++ triggerElements.schema ++
     triggerVariableAssignments.schema ++ userConnections.schema ++ adventureShares.schema ++ adventureProgress.schema)
 
