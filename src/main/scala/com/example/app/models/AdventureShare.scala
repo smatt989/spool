@@ -42,11 +42,13 @@ object AdventureShare extends SlickDbObject[AdventureShare, (Int, Int, Int, Int,
       createMany(shares).flatMap(newlySaved => {
           val recipientDeviceIds = DeviceToken.getByUserIds(newlySaved.map(_.receiverUserId))
           val senders = Await.result(User.byIds(newlySaved.map(_.senderUserId)), Duration.Inf).map(a => a.id -> a.username).toMap
+          val adventures = Await.result(Adventure.byIds(newlySaved.map(_.adventureId)), Duration.Inf).map(a => a.id -> a.name).toMap
           newlySaved.foreach(saved => {
             val sendername = senders(saved.senderUserId)
             val receiverDeviceToken = recipientDeviceIds(saved.receiverUserId)
+            val adventure = adventures(saved.adventureId)
             if(receiverDeviceToken.isDefined)
-              PushNotificationManager.makePushNotification(sendername+" has shared an adventure with you", receiverDeviceToken.get)
+              PushNotificationManager.makePushNotification(sendername+" shared an adventure, "+adventure+", with you", receiverDeviceToken.get)
           })
 
           val alreadySavedByTriple = alreadySaved.map(a => (a.senderUserId, a.receiverUserId, a.adventureId) -> a).toMap
