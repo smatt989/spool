@@ -19,7 +19,7 @@ object PushNotificationManager {
     teamId, keyId, topic)
 
   def makePushNotification(message: String, deviceToken: String) = {
-    val connection = apnsClient.connect(ApnsClient.DEVELOPMENT_APNS_HOST)
+    val connection = apnsClient.connect(ApnsClient.PRODUCTION_APNS_HOST)
     connection.await()
 
     val payloadBuilder = new ApnsPayloadBuilder()
