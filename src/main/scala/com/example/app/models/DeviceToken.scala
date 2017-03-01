@@ -27,7 +27,7 @@ object DeviceToken extends Updatable[DeviceToken, (Int, Int, Option[String]), Ta
 
   def getByUserIds(ids: Seq[Int]): Map[Int, Option[String]] = {
     val tokens = Await.result(db.run(table.filter(_.userId inSet ids).result).map(_.map(reify)), Duration.Inf)
-    val tokenMap = tokens.map(t => t.userId -> t.deviceToken).toMap
+    val tokenMap = tokens.groupBy(_.userId).mapValues(_.sortBy(_.id).last.deviceToken)
     ids.map(id => id -> tokenMap.get(id).getOrElse(None)).toMap
   }
 }
