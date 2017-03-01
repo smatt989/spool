@@ -33,7 +33,7 @@ object PushNotificationManager {
     new Thread(new Runnable { def run() { promise.complete(Try{ jfuture.get }) }}).start
     val future = promise.future
 
-    System.out.println("Establishing connection...");
+    System.out.println("Establishing connection...")
 
     Await.result(future, Duration.Inf)
 
@@ -45,33 +45,33 @@ object PushNotificationManager {
     val token = TokenUtil.sanitizeTokenString(deviceToken)
 
     val pushNotification = new SimpleApnsPushNotification(token, topic, payload)
-    System.out.println("Sending notification...");
+    System.out.println("Sending notification...")
     val sendNotificationFuture = apnsClient.sendNotification(pushNotification)
 
     try {
       val pushNotificationResponse =
         sendNotificationFuture.get();
 
-      System.out.println("Push notification received...");
+      System.out.println("Push notification received...")
       if (pushNotificationResponse.isAccepted()) {
-        System.out.println("Push notification accepted by APNs gateway.");
+        System.out.println("Push notification accepted by APNs gateway.")
       } else {
         System.out.println("Notification rejected by the APNs gateway: " +
-          pushNotificationResponse.getRejectionReason());
+          pushNotificationResponse.getRejectionReason())
 
         if (pushNotificationResponse.getTokenInvalidationTimestamp() != null) {
           System.out.println("\t…and the token is invalid as of " +
-            pushNotificationResponse.getTokenInvalidationTimestamp());
+            pushNotificationResponse.getTokenInvalidationTimestamp())
         }
       }
     } catch {case e: ExecutionException =>
-      System.err.println("Failed to send push notification.");
-      e.printStackTrace();
+      System.err.println("Failed to send push notification.")
+      e.printStackTrace()
 
       if (e.getCause().isInstanceOf[ClientNotConnectedException]) {
-        System.out.println("Waiting for client to reconnect…");
-        apnsClient.getReconnectionFuture().await();
-        System.out.println("Reconnected.");
+        System.out.println("Waiting for client to reconnect…")
+        apnsClient.getReconnectionFuture().await()
+        System.out.println("Reconnected.")
       }
     }
 
@@ -80,6 +80,10 @@ object PushNotificationManager {
     new Thread(new Runnable { def run() { promiseDisconnect.complete(Try{ jfutureDisconnect.get }) }}).start
     val futureDisconnect = promiseDisconnect.future
 
+    System.out.println("Disconnecting...")
+
     Await.result(futureDisconnect, Duration.Inf)
+    System.out.println("Done.")
+
   }
 }
