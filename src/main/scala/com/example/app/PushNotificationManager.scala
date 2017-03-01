@@ -5,6 +5,11 @@ import java.util.concurrent.ExecutionException
 
 import com.relayrides.pushy.apns._
 import com.relayrides.pushy.apns.util.{ApnsPayloadBuilder, SimpleApnsPushNotification, TokenUtil}
+import java.util.concurrent.{Future => JFuture}
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Promise, Future => SFuture}
+import scala.util.Try
 
 object PushNotificationManager {
 
@@ -19,8 +24,13 @@ object PushNotificationManager {
     teamId, keyId, topic)
 
   def makePushNotification(message: String, deviceToken: String) = {
-    val connection = apnsClient.connect(ApnsClient.PRODUCTION_APNS_HOST)
-    connection.await()
+
+    val jfuture: JFuture[Void] = apnsClient.connect(ApnsClient.PRODUCTION_APNS_HOST)
+    val promise = Promise[Void]()
+    new Thread(new Runnable { def run() { promise.complete(Try{ jfuture.get }) }}).start
+    val future = promise.future
+
+    Await.result(future, Duration.Inf)
 
     val payloadBuilder = new ApnsPayloadBuilder()
     payloadBuilder.setAlertBody(message)
@@ -59,7 +69,11 @@ object PushNotificationManager {
       }
     }
 
-    val disconnectFuture = apnsClient.disconnect()
-    disconnectFuture.await()
+    val jfutureDisconnect: JFuture[Void] = apnsClient.disconnect()
+    val promiseDisconnect = Promise[Void]()
+    new Thread(new Runnable { def run() { promiseDisconnect.complete(Try{ jfutureDisconnect.get }) }}).start
+    val futureDisconnect = promiseDisconnect.future
+
+    Await.result(futureDisconnect, Duration.Inf)
   }
 }
