@@ -33,6 +33,8 @@ object PushNotificationManager {
     new Thread(new Runnable { def run() { promise.complete(Try{ jfuture.get }) }}).start
     val future = promise.future
 
+    System.out.println("Establishing connection...");
+
     Await.result(future, Duration.Inf)
 
     val payloadBuilder = new ApnsPayloadBuilder()
@@ -43,13 +45,14 @@ object PushNotificationManager {
     val token = TokenUtil.sanitizeTokenString(deviceToken)
 
     val pushNotification = new SimpleApnsPushNotification(token, topic, payload)
-
+    System.out.println("Sending notification...");
     val sendNotificationFuture = apnsClient.sendNotification(pushNotification)
 
     try {
       val pushNotificationResponse =
         sendNotificationFuture.get();
 
+      System.out.println("Push notification received...");
       if (pushNotificationResponse.isAccepted()) {
         System.out.println("Push notification accepted by APNs gateway.");
       } else {
