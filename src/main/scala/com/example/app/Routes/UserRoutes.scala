@@ -76,7 +76,7 @@ trait UserRoutes extends SlickRoutes with AuthenticationSupport{
   }
 
   get("/users/tokens") {
-    contentType = format("json")
+    contentType = formats("json")
 
     DeviceToken.getAll
   }
