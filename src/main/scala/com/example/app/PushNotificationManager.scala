@@ -23,12 +23,12 @@ object PushNotificationManager {
   apnsClient.registerSigningKey(new File("src/main/resources/APNsAuthKey_VLPZR3288Q.p8"),
     teamId, keyId, topic)
 
-  val developerGateway = "gateway.sandbox.push.apple.com"
-  val productionGateway = "gateway.push.apple.com"
+  //val developerGateway = "gateway.sandbox.push.apple.com"
+  //val productionGateway = "gateway.push.apple.com"
 
   def makePushNotification(message: String, deviceToken: String) = {
 
-    val jfuture: JFuture[Void] = apnsClient.connect(developerGateway)
+    val jfuture: JFuture[Void] = apnsClient.connect(ApnsClient.DEVELOPMENT_APNS_HOST)
     val promise = Promise[Void]()
     new Thread(new Runnable { def run() { promise.complete(Try{ jfuture.get }) }}).start
     val future = promise.future
