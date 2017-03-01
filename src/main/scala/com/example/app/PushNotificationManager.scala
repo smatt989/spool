@@ -25,9 +25,9 @@ object PushNotificationManager {
 
   //val developerGateway = "gateway.sandbox.push.apple.com"
   //val productionGateway = "gateway.push.apple.com"
+  connect()
 
-  def makePushNotification(message: String, deviceToken: String) = {
-
+  def connect(): Unit = {
     val jfuture: JFuture[Void] = apnsClient.connect(ApnsClient.DEVELOPMENT_APNS_HOST)
     val promise = Promise[Void]()
     new Thread(new Runnable { def run() { promise.complete(Try{ jfuture.get }) }}).start
@@ -36,6 +36,9 @@ object PushNotificationManager {
     System.out.println("Establishing connection...")
 
     Await.result(future, Duration.Inf)
+  }
+
+  def makePushNotification(message: String, deviceToken: String) = {
 
     val payloadBuilder = new ApnsPayloadBuilder()
     payloadBuilder.setAlertBody(message)
@@ -75,7 +78,7 @@ object PushNotificationManager {
       }
     }
 
-    val jfutureDisconnect: JFuture[Void] = apnsClient.disconnect()
+/*    val jfutureDisconnect: JFuture[Void] = apnsClient.disconnect()
     val promiseDisconnect = Promise[Void]()
     new Thread(new Runnable { def run() { promiseDisconnect.complete(Try{ jfutureDisconnect.get }) }}).start
     val futureDisconnect = promiseDisconnect.future
@@ -83,7 +86,7 @@ object PushNotificationManager {
     System.out.println("Disconnecting...")
 
     Await.result(futureDisconnect, Duration.Inf)
-    System.out.println("Done.")
+    System.out.println("Done.")*/
 
   }
 }
