@@ -47,8 +47,12 @@ object AdventureShare extends SlickDbObject[AdventureShare, (Int, Int, Int, Int,
             val sendername = senders(saved.senderUserId)
             val receiverDeviceToken = recipientDeviceIds(saved.receiverUserId)
             val adventure = adventures(saved.adventureId)
-            if(receiverDeviceToken.isDefined)
-              PushNotificationManager.makePushNotification(sendername+" shared an adventure, "+adventure+", with you", receiverDeviceToken.get)
+            if(receiverDeviceToken.isDefined) {
+              System.out.println("Making push notification");
+              PushNotificationManager.makePushNotification(sendername + " shared an adventure, " + adventure + ", with you", receiverDeviceToken.get)
+            } else {
+              System.out.println("Not pushing");
+            }
           })
 
           val alreadySavedByTriple = alreadySaved.map(a => (a.senderUserId, a.receiverUserId, a.adventureId) -> a).toMap
