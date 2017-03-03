@@ -28,7 +28,7 @@ object PushNotificationManager {
   connect()
 
   def connect(): Unit = {
-    val jfuture: JFuture[Void] = apnsClient.connect(ApnsClient.DEVELOPMENT_APNS_HOST)
+    val jfuture: JFuture[Void] = apnsClient.connect(ApnsClient.PRODUCTION_APNS_HOST)
     val promise = Promise[Void]()
     new Thread(new Runnable { def run() { promise.complete(Try{ jfuture.get }) }}).start
     val future = promise.future
