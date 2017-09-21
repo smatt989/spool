@@ -49,6 +49,7 @@ object AdventureShare extends SlickDbObject[AdventureShare, (Int, Int, Int, Int,
             val adventure = adventures(saved.adventureId)
             if(receiverDeviceToken.isDefined) {
               System.out.println("Making push notification");
+              System.out.println("Device Token: "+receiverDeviceToken.get)
               PushNotificationManager.makePushNotification(sendername + " shared an adventure, " + adventure + ", with you", receiverDeviceToken.get)
             } else {
               System.out.println("Not pushing");
